@@ -42,3 +42,11 @@ output "database_security_group_id" {
   description = "Security group ID for database traffic."
   value       = aws_security_group.database.id
 }
+
+output "ecr_repository_urls" {
+  description = "Amazon ECR repository URLs by service."
+  value = {
+    for service, repository in aws_ecr_repository.services :
+    service => repository.repository_url
+  }
+}
