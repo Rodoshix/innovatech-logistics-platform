@@ -1,0 +1,13 @@
+.env
+.env.*
+node_modules/
+dist/
+build/
+npm-debug.log*
+
+.git/
+.gitignore
+docker-compose.override.yml
+
+*.swp
+*~
