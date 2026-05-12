@@ -27,3 +27,18 @@ output "internet_gateway_id" {
   description = "ID of the internet gateway."
   value       = aws_internet_gateway.main.id
 }
+
+output "frontend_security_group_id" {
+  description = "Security group ID for frontend traffic."
+  value       = aws_security_group.frontend.id
+}
+
+output "backend_security_group_id" {
+  description = "Security group ID for backend traffic."
+  value       = aws_security_group.backend.id
+}
+
+output "database_security_group_id" {
+  description = "Security group ID for database traffic."
+  value       = aws_security_group.database.id
+}
