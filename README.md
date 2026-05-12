@@ -51,6 +51,10 @@ innovatech-logistics-platform/
 - Despliegue automatizado sobre AWS.
 - Separación de acceso entre frontend público y servicios internos.
 
+## Ejecución local
+
+La plataforma puede ejecutarse localmente con Docker Compose desde la configuración ubicada en [`deploy/`](deploy/README.md).
+
 ## Flujo de ramas
 
 ```text
