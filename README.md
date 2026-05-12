@@ -16,7 +16,7 @@ Plataforma logística para Innovatech Chile orientada a la gestión de ventas y 
 ## Estructura
 
 ```text
-innovatech-logistics-platform-DevOps/
+innovatech-logistics-platform/
   apps/
     frontend-despachos/
     api-despachos/
