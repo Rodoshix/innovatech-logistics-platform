@@ -8,9 +8,10 @@ Esta carpeta contiene los workflows CI/CD del proyecto.
 
 ## Comportamiento
 
-- En pull requests hacia `develop`, el workflow solo construye las imagenes para validar Dockerfiles y dependencias.
-- En push hacia `develop` o `deploy`, el workflow construye y publica las imagenes en Amazon ECR.
-- Tambien puede ejecutarse manualmente desde GitHub Actions con `workflow_dispatch`.
+- En pull requests hacia `develop`, el workflow construye las imagenes para validar Dockerfiles y dependencias.
+- En push hacia `develop`, el workflow construye las imagenes sin publicarlas.
+- En push hacia `deploy`, el workflow construye y publica las imagenes en Amazon ECR.
+- Tambien puede publicarse manualmente desde GitHub Actions con `workflow_dispatch`.
 
 ## Variables
 
@@ -34,4 +35,4 @@ Configurar en GitHub Actions como repository secrets:
 | `AWS_SECRET_ACCESS_KEY` | Secret key asociada. |
 | `AWS_SESSION_TOKEN` | Token temporal si la cuenta lo requiere. |
 
-Los repositorios ECR deben existir antes de publicar imagenes. Se crean con Terraform.
+Los secrets AWS solo son necesarios cuando el workflow publica imagenes en ECR. Los repositorios ECR deben existir antes de publicar imagenes. Se crean con Terraform.
