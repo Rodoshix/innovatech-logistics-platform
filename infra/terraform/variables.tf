@@ -27,3 +27,69 @@ variable "public_subnet_cidr" {
   type        = string
   default     = "10.20.1.0/24"
 }
+
+variable "db_instance_type" {
+  description = "EC2 instance type used for the MySQL runtime."
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "db_volume_size" {
+  description = "Root volume size in GB for the MySQL EC2 instance."
+  type        = number
+  default     = 20
+}
+
+variable "db_name" {
+  description = "Initial MySQL database name."
+  type        = string
+  default     = "innovatech"
+}
+
+variable "db_username" {
+  description = "Application database username."
+  type        = string
+  default     = "innovatech_app"
+}
+
+variable "db_password" {
+  description = "Application database password."
+  type        = string
+  sensitive   = true
+}
+
+variable "db_root_password" {
+  description = "Root password for the MySQL runtime."
+  type        = string
+  sensitive   = true
+}
+
+variable "key_pair_name" {
+  description = "Optional EC2 key pair name for operational access."
+  type        = string
+  default     = null
+}
+
+variable "app_image_tag" {
+  description = "Container image tag deployed by ECS."
+  type        = string
+  default     = "latest"
+}
+
+variable "app_desired_count" {
+  description = "Number of ECS tasks to keep running."
+  type        = number
+  default     = 1
+}
+
+variable "app_task_cpu" {
+  description = "CPU units assigned to the ECS Fargate task."
+  type        = number
+  default     = 1024
+}
+
+variable "app_task_memory" {
+  description = "Memory in MiB assigned to the ECS Fargate task."
+  type        = number
+  default     = 2048
+}

@@ -1,0 +1,27 @@
+#!/bin/bash
+set -euo pipefail
+
+dnf update -y
+dnf install -y docker
+
+systemctl enable --now docker
+
+docker volume create mysql_data
+
+docker rm -f innovatech-mysql || true
+
+DB_NAME="$(printf '%s' '${db_name_b64}' | base64 -d)"
+DB_USERNAME="$(printf '%s' '${db_username_b64}' | base64 -d)"
+DB_PASSWORD="$(printf '%s' '${db_password_b64}' | base64 -d)"
+DB_ROOT_PASSWORD="$(printf '%s' '${db_root_password_b64}' | base64 -d)"
+
+docker run -d \
+  --name innovatech-mysql \
+  --restart unless-stopped \
+  -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD="$DB_ROOT_PASSWORD" \
+  -e MYSQL_DATABASE="$DB_NAME" \
+  -e MYSQL_USER="$DB_USERNAME" \
+  -e MYSQL_PASSWORD="$DB_PASSWORD" \
+  -v mysql_data:/var/lib/mysql \
+  mysql:8.4
