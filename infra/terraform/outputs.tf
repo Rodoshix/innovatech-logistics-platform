@@ -50,3 +50,26 @@ output "ecr_repository_urls" {
     service => repository.repository_url
   }
 }
+
+output "ecs_cluster_name" {
+  description = "Name of the ECS cluster."
+  value       = aws_ecs_cluster.main.name
+}
+
+output "ecs_cluster_id" {
+  description = "ID of the ECS cluster."
+  value       = aws_ecs_cluster.main.id
+}
+
+output "lab_role_arn" {
+  description = "ARN of the AWS Academy LabRole used by ECS tasks."
+  value       = data.aws_iam_role.lab.arn
+}
+
+output "cloudwatch_log_group_names" {
+  description = "CloudWatch log group names by service."
+  value = {
+    for service, log_group in aws_cloudwatch_log_group.services :
+    service => log_group.name
+  }
+}
