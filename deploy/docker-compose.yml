@@ -8,6 +8,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -27,6 +29,7 @@ services:
     container_name: innovatech-api-despachos
     restart: unless-stopped
     environment:
+      SERVER_PORT: 8080
       DB_ENDPOINT: ${DB_ENDPOINT}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
@@ -47,6 +50,7 @@ services:
     container_name: innovatech-api-ventas
     restart: unless-stopped
     environment:
+      SERVER_PORT: 8081
       DB_ENDPOINT: ${DB_ENDPOINT}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}

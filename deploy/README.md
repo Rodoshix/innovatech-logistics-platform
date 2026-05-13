@@ -22,17 +22,20 @@ En PowerShell también puede usarse:
 Copy-Item deploy\.env.example deploy\.env
 ```
 
-El archivo `.env` contiene las variables utilizadas por MySQL y por los servicios Spring Boot:
+El archivo `.env` contiene las variables utilizadas por MySQL y por los servicios Spring Boot.
 
-```text
-MYSQL_ROOT_PASSWORD
-MYSQL_DATABASE
-DB_ENDPOINT
-DB_PORT
-DB_NAME
-DB_USERNAME
-DB_PASSWORD
-```
+| Variable | Servicio | Descripción |
+| --- | --- | --- |
+| `MYSQL_ROOT_PASSWORD` | MySQL | Password administrativo del contenedor MySQL. |
+| `MYSQL_DATABASE` | MySQL | Base de datos creada al iniciar el contenedor. |
+| `MYSQL_USER` | MySQL | Usuario de aplicación creado al iniciar el contenedor. |
+| `MYSQL_PASSWORD` | MySQL | Password del usuario de aplicación. |
+| `DB_ENDPOINT` | APIs | Host de la base de datos usado por Spring Boot. |
+| `DB_PORT` | APIs | Puerto de conexión a MySQL. |
+| `DB_NAME` | APIs | Nombre de la base de datos usada por las APIs. |
+| `DB_USERNAME` | APIs | Usuario usado por las APIs para conectar a MySQL. |
+| `DB_PASSWORD` | APIs | Password usado por las APIs para conectar a MySQL. |
+| `SERVER_PORT` | APIs | Puerto interno definido por servicio en `docker-compose.yml`. |
 
 ## Levantar el stack
 
