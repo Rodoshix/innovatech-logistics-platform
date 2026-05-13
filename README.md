@@ -95,3 +95,7 @@ La preparacion de AWS CLI, Terraform variables y GitHub Secrets/Variables esta d
 ## Validacion
 
 El checklist de validacion del despliegue, revision de ECS y logs CloudWatch esta documentado en [docs/deployment-validation.md](docs/deployment-validation.md).
+
+## Release
+
+El proceso para promover cambios desde `develop` hacia `deploy` y `main` esta documentado en [docs/release-process.md](docs/release-process.md).

@@ -14,6 +14,8 @@ feature/* -> develop -> deploy -> main
 
 Las ramas `feature/*` se crean desde `develop` y vuelven a `develop` mediante pull request. La rama `deploy` se actualiza desde `develop` cuando se quiere publicar una version desplegable. `main` se actualiza cuando la version ya fue validada.
 
+El proceso operativo para promover cambios esta documentado en `docs/release-process.md`.
+
 ## Convencion de commits
 
 - `chore`: estructura, configuracion o tareas de mantenimiento.
