@@ -62,7 +62,7 @@ output "ecs_cluster_id" {
 }
 
 output "lab_role_arn" {
-  description = "ARN of the AWS Academy LabRole used by ECS tasks."
+  description = "ARN of the LabRole used by ECS tasks."
   value       = data.aws_iam_role.lab.arn
 }
 
