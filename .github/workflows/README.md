@@ -40,3 +40,5 @@ Configurar en GitHub Actions como repository secrets:
 | `AWS_SESSION_TOKEN` | Token temporal si la cuenta lo requiere. |
 
 Los secrets AWS son necesarios cuando el workflow publica imagenes en ECR o actualiza ECS. Los repositorios ECR, el cluster y el servicio ECS deben existir antes de ejecutar el despliegue. Se crean con Terraform.
+
+La guia completa de configuracion esta disponible en `docs/aws-setup.md`.

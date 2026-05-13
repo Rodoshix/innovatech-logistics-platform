@@ -124,6 +124,8 @@ curl http://$PUBLIC_IP/api/v1/despachos
 curl http://$PUBLIC_IP/api/v1/ventas
 ```
 
+El checklist completo de validacion y diagnostico esta disponible en `docs/deployment-validation.md`.
+
 ## Logs
 
 Los logs quedan separados por servicio en CloudWatch:

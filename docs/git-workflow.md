@@ -2,26 +2,28 @@
 
 ## Ramas principales
 
-- `main`: contiene la versión estable del proyecto.
-- `develop`: integra las ramas de trabajo aprobadas antes de promover cambios hacia `main`.
-- `deploy`: activa el pipeline de despliegue continuo hacia AWS.
+- `main`: contiene la version estable del proyecto.
+- `develop`: integra las ramas de trabajo aprobadas antes de promover cambios.
+- `deploy`: activa publicacion de imagenes y despliegue continuo hacia AWS.
 
 ## Flujo de ramas
 
 ```text
-feature/* -> develop -> main
+feature/* -> develop -> deploy -> main
 ```
 
-Las ramas `feature/*` se crean desde `develop` y vuelven a `develop` mediante pull request. La rama `deploy` se reserva para publicar versiones desplegables.
+Las ramas `feature/*` se crean desde `develop` y vuelven a `develop` mediante pull request. La rama `deploy` se actualiza desde `develop` cuando se quiere publicar una version desplegable. `main` se actualiza cuando la version ya fue validada.
 
-## Convención de commits
+El proceso operativo para promover cambios esta documentado en `docs/release-process.md`.
 
-- `chore`: estructura, configuración o tareas de mantenimiento.
-- `feat`: nueva funcionalidad o capacidad técnica.
-- `fix`: corrección de errores.
-- `docs`: documentación.
-- `ci`: pipelines y automatización.
-- `infra`: infraestructura como código.
+## Convencion de commits
+
+- `chore`: estructura, configuracion o tareas de mantenimiento.
+- `feat`: nueva funcionalidad o capacidad tecnica.
+- `fix`: correccion de errores.
+- `docs`: documentacion.
+- `ci`: pipelines y automatizacion.
+- `infra`: infraestructura como codigo.
 
 Ejemplos:
 
@@ -29,6 +31,6 @@ Ejemplos:
 chore: bootstrap monorepo structure
 feat: add docker compose stack
 infra: define aws network baseline
-ci: add deploy workflow for ec2
-docs: document deployment procedure
+ci: publish images to ecr
+docs: document deployment validation
 ```
