@@ -43,6 +43,16 @@ output "database_security_group_id" {
   value       = aws_security_group.database.id
 }
 
+output "database_instance_id" {
+  description = "ID of the EC2 instance running MySQL."
+  value       = aws_instance.database.id
+}
+
+output "database_private_ip" {
+  description = "Private IP used by application services to connect to MySQL."
+  value       = aws_instance.database.private_ip
+}
+
 output "ecr_repository_urls" {
   description = "Amazon ECR repository URLs by service."
   value = {
