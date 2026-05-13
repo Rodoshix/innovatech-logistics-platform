@@ -87,3 +87,7 @@ Los workflows se encuentran en [.github/workflows](.github/workflows):
 ## Despliegue
 
 El flujo manual y automatizado de despliegue hacia AWS ECS esta documentado en [deploy/aws-ecs.md](deploy/aws-ecs.md).
+
+## Configuracion
+
+La preparacion de AWS CLI, Terraform variables y GitHub Secrets/Variables esta documentada en [docs/aws-setup.md](docs/aws-setup.md).

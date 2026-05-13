@@ -29,6 +29,8 @@ Copy-Item infra\terraform\terraform.tfvars.example infra\terraform\terraform.tfv
 
 El archivo `terraform.tfvars` no debe versionarse.
 
+La configuracion completa de credenciales y variables esta documentada en `docs/aws-setup.md`.
+
 ## Comandos
 
 Desde esta carpeta:
