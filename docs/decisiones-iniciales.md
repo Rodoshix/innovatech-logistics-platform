@@ -27,4 +27,14 @@ Las imagenes se publican en Amazon ECR para mantener el flujo de contenedores de
 
 ## Orquestacion
 
-Los servicios de aplicacion se ejecutan en Amazon ECS Fargate. La base de datos MySQL se ejecuta en EC2 con Docker y volumen persistente, manteniendo una arquitectura simple de operar y alineada con el alcance actual del proyecto.
+Los servicios de aplicacion se ejecutan en Amazon ECS Fargate dentro de subnets privadas. La entrada publica se realiza mediante un Application Load Balancer ubicado en subnets publicas. La base de datos MySQL se ejecuta en EC2 privada con Docker y volumen persistente.
+
+## Red AWS
+
+La red separa la capa publica y privada:
+
+- Subnets publicas para ALB y NAT Gateway.
+- Subnets privadas para ECS Fargate y MySQL.
+- Internet Gateway para entrada publica.
+- NAT Gateway para salida controlada desde subnets privadas.
+- Security Groups para restringir trafico entre ALB, ECS y MySQL.

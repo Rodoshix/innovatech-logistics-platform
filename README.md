@@ -4,7 +4,7 @@ Plataforma logistica para Innovatech Chile orientada a la gestion de ventas y de
 
 ## Arquitectura
 
-La solucion se compone de una aplicacion frontend, dos servicios backend y una base de datos MySQL. En ambiente local se ejecuta con Docker Compose. En AWS se despliega con imagenes publicadas en Amazon ECR, ejecucion de contenedores en Amazon ECS Fargate, base de datos MySQL sobre EC2 y recursos de red administrados con Terraform.
+La solucion se compone de una aplicacion frontend, dos servicios backend y una base de datos MySQL. En ambiente local se ejecuta con Docker Compose. En AWS se despliega con imagenes publicadas en Amazon ECR, un Application Load Balancer publico, contenedores en Amazon ECS Fargate dentro de subnets privadas, base de datos MySQL sobre EC2 privada y recursos de red administrados con Terraform.
 
 ```text
 Usuario
@@ -28,7 +28,8 @@ Frontend Nginx / React
 - Amazon ECR para registro de imagenes.
 - Amazon ECS Fargate para ejecucion de contenedores.
 - Amazon EC2 para runtime MySQL.
-- VPC, subred publica, Security Groups y CloudWatch para red, seguridad y observabilidad.
+- Application Load Balancer para entrada HTTP publica.
+- VPC, subnets publicas/privadas, NAT Gateway, Security Groups y CloudWatch para red, seguridad y observabilidad.
 
 ## Estructura
 
@@ -75,7 +76,7 @@ La plataforma puede ejecutarse localmente con Docker Compose desde la configurac
 
 ## Infraestructura
 
-La infraestructura AWS se define en [infra/terraform](infra/terraform). Terraform administra red, grupos de seguridad, repositorios ECR, ECS, EC2 para MySQL y logs en CloudWatch.
+La infraestructura AWS se define en [infra/terraform](infra/terraform). Terraform administra red publica/privada, NAT Gateway, grupos de seguridad, Application Load Balancer, repositorios ECR, ECS, EC2 para MySQL y logs en CloudWatch.
 
 ## CI/CD
 

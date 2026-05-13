@@ -26,6 +26,7 @@ Configurar en GitHub Actions como repository variables:
 | `ENVIRONMENT` | Ambiente usado por Terraform, por ejemplo `dev`. |
 | `ECS_CLUSTER_NAME` | Nombre del cluster ECS. Si no se configura, se calcula desde `PROJECT_NAME` y `ENVIRONMENT`. |
 | `ECS_SERVICE_NAME` | Nombre del servicio ECS. Si no se configura, se calcula desde `PROJECT_NAME` y `ENVIRONMENT`. |
+| `ALB_NAME` | Nombre del Application Load Balancer. Si no se configura, se calcula desde `PROJECT_NAME` y `ENVIRONMENT`. |
 
 Si no se configuran, el workflow usa los valores por defecto del modulo Terraform.
 

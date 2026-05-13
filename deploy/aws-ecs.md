@@ -1,6 +1,6 @@
 # AWS ECS Deployment
 
-Esta guia describe el despliegue manual de la plataforma en AWS usando ECR, ECS Fargate, EC2, CloudWatch y Terraform.
+Esta guia describe el despliegue manual de la plataforma en AWS usando ECR, ECS Fargate, EC2, Application Load Balancer, CloudWatch y Terraform.
 
 ## Prerrequisitos
 
@@ -22,7 +22,7 @@ terraform plan
 terraform apply
 ```
 
-Terraform crea la red, grupos de seguridad, repositorios ECR, cluster ECS, servicio ECS, logs en CloudWatch y la instancia EC2 que ejecuta MySQL.
+Terraform crea la red publica/privada, NAT Gateway, grupos de seguridad, Application Load Balancer, repositorios ECR, cluster ECS, servicio ECS, logs en CloudWatch y la instancia EC2 privada que ejecuta MySQL.
 
 ## Obtener datos de ECR
 
@@ -91,27 +91,10 @@ Este paso queda automatizado por el workflow `.github/workflows/ecs-deploy.yml` 
 
 ## Obtener URL publica
 
-El servicio ECS usa una task Fargate con IP publica. Para obtenerla:
+La aplicacion se expone mediante el Application Load Balancer. Para obtener la URL:
 
 ```bash
-TASK_ARN=$(aws ecs list-tasks \
-  --cluster <ecs-cluster-name> \
-  --service-name <ecs-service-name> \
-  --query "taskArns[0]" \
-  --output text)
-
-ENI_ID=$(aws ecs describe-tasks \
-  --cluster <ecs-cluster-name> \
-  --tasks "$TASK_ARN" \
-  --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" \
-  --output text)
-
-PUBLIC_IP=$(aws ec2 describe-network-interfaces \
-  --network-interface-ids "$ENI_ID" \
-  --query "NetworkInterfaces[0].Association.PublicIp" \
-  --output text)
-
-echo "http://$PUBLIC_IP"
+terraform output application_url
 ```
 
 ## Verificacion
@@ -119,9 +102,9 @@ echo "http://$PUBLIC_IP"
 Abrir la URL publica en el navegador y validar:
 
 ```bash
-curl http://$PUBLIC_IP/health
-curl http://$PUBLIC_IP/api/v1/despachos
-curl http://$PUBLIC_IP/api/v1/ventas
+curl "$(terraform output -raw application_url)/health"
+curl "$(terraform output -raw application_url)/api/v1/despachos"
+curl "$(terraform output -raw application_url)/api/v1/ventas"
 ```
 
 El checklist completo de validacion y diagnostico esta disponible en `docs/deployment-validation.md`.

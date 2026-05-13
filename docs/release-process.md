@@ -40,7 +40,7 @@ El push a `deploy` activa:
 Despues del despliegue, ejecutar el checklist documentado en `docs/deployment-validation.md`:
 
 - Verificar estado del servicio ECS.
-- Obtener IP publica de la task.
+- Obtener URL publica del Application Load Balancer.
 - Probar `/health`.
 - Probar `/api/v1/despachos`.
 - Probar `/api/v1/ventas`.
