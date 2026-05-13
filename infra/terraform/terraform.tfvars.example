@@ -12,3 +12,8 @@ db_username      = "innovatech_app"
 db_password      = "change-me-app"
 db_root_password = "change-me-root"
 key_pair_name    = null
+
+app_image_tag     = "latest"
+app_desired_count = 1
+app_task_cpu      = 1024
+app_task_memory   = 2048

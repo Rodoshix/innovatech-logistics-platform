@@ -10,7 +10,10 @@ RUN npm run build
 
 FROM nginx:1.27-alpine AS runtime
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+ENV API_VENTAS_UPSTREAM=api-ventas:8081
+ENV API_DESPACHOS_UPSTREAM=api-despachos:8080
+
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80

@@ -69,3 +69,27 @@ variable "key_pair_name" {
   type        = string
   default     = null
 }
+
+variable "app_image_tag" {
+  description = "Container image tag deployed by ECS."
+  type        = string
+  default     = "latest"
+}
+
+variable "app_desired_count" {
+  description = "Number of ECS tasks to keep running."
+  type        = number
+  default     = 1
+}
+
+variable "app_task_cpu" {
+  description = "CPU units assigned to the ECS Fargate task."
+  type        = number
+  default     = 1024
+}
+
+variable "app_task_memory" {
+  description = "Memory in MiB assigned to the ECS Fargate task."
+  type        = number
+  default     = 2048
+}

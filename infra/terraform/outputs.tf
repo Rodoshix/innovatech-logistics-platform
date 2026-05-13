@@ -43,6 +43,11 @@ output "database_security_group_id" {
   value       = aws_security_group.database.id
 }
 
+output "ecs_app_security_group_id" {
+  description = "Security group ID attached to the ECS application task."
+  value       = aws_security_group.ecs_app.id
+}
+
 output "database_instance_id" {
   description = "ID of the EC2 instance running MySQL."
   value       = aws_instance.database.id
@@ -69,6 +74,16 @@ output "ecs_cluster_name" {
 output "ecs_cluster_id" {
   description = "ID of the ECS cluster."
   value       = aws_ecs_cluster.main.id
+}
+
+output "ecs_service_name" {
+  description = "Name of the ECS service running the application task."
+  value       = aws_ecs_service.app.name
+}
+
+output "ecs_task_definition_arn" {
+  description = "ARN of the ECS task definition."
+  value       = aws_ecs_task_definition.app.arn
 }
 
 output "lab_role_arn" {

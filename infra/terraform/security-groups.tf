@@ -83,3 +83,39 @@ resource "aws_security_group" "database" {
     Name = "${local.name_prefix}-database-sg"
   })
 }
+
+resource "aws_security_group" "ecs_app" {
+  name        = "${local.name_prefix}-ecs-app-sg"
+  description = "Public HTTP access for the ECS application task."
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTP from internet"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(local.common_tags, {
+    Name = "${local.name_prefix}-ecs-app-sg"
+  })
+}
+
+resource "aws_security_group_rule" "database_from_ecs_app" {
+  type                     = "ingress"
+  description              = "MySQL from ECS application task"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.database.id
+  source_security_group_id = aws_security_group.ecs_app.id
+}
