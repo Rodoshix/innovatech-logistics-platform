@@ -74,6 +74,8 @@ docker push <api-despachos-ecr-url>:latest
 docker push <api-ventas-ecr-url>:latest
 ```
 
+Este flujo manual queda automatizado por el workflow `.github/workflows/container-images.yml` cuando se hace push a `develop`, push a `deploy` o ejecucion manual desde GitHub Actions.
+
 ## Actualizar ECS
 
 Forzar un nuevo despliegue del servicio:
