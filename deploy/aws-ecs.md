@@ -87,6 +87,8 @@ aws ecs update-service \
   --force-new-deployment
 ```
 
+Este paso queda automatizado por el workflow `.github/workflows/ecs-deploy.yml` cuando el workflow de imagenes termina correctamente en la rama `deploy`.
+
 ## Obtener URL publica
 
 El servicio ECS usa una task Fargate con IP publica. Para obtenerla:
