@@ -91,3 +91,7 @@ El flujo manual y automatizado de despliegue hacia AWS ECS esta documentado en [
 ## Configuracion
 
 La preparacion de AWS CLI, Terraform variables y GitHub Secrets/Variables esta documentada en [docs/aws-setup.md](docs/aws-setup.md).
+
+## Validacion
+
+El checklist de validacion del despliegue, revision de ECS y logs CloudWatch esta documentado en [docs/deployment-validation.md](docs/deployment-validation.md).
