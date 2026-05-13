@@ -11,7 +11,7 @@ Esta carpeta contiene la infraestructura AWS definida como codigo.
 - Amazon EC2 con Docker para ejecutar MySQL con volumen persistente.
 - CloudWatch Log Groups para logs de servicios.
 - Referencia a `LabRole` para ejecucion de recursos administrados.
-- Outputs para IDs, nombres, URLs de repositorios e IP privada de base de datos.
+- Outputs para IDs, nombres, URLs de repositorios, servicio ECS e IP privada de base de datos.
 
 ## Variables
 
@@ -57,3 +57,4 @@ terraform destroy
 - `terraform apply` y `terraform destroy` modifican recursos reales en AWS.
 - `.terraform/`, `terraform.tfstate` y `terraform.tfvars` se mantienen fuera del repositorio.
 - `.terraform.lock.hcl` se versiona para fijar la version del provider utilizada por el proyecto.
+- El flujo manual de build, push y despliegue ECS esta documentado en `deploy/aws-ecs.md`.
