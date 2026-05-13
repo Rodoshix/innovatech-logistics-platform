@@ -17,6 +17,7 @@ env:
   AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
   ECS_CLUSTER_NAME: ${{ vars.ECS_CLUSTER_NAME }}
   ECS_SERVICE_NAME: ${{ vars.ECS_SERVICE_NAME }}
+  ALB_NAME: ${{ vars.ALB_NAME }}
 
 jobs:
   deploy:
@@ -33,9 +34,11 @@ jobs:
         run: |
           CLUSTER_NAME="${ECS_CLUSTER_NAME:-${PROJECT_NAME}-${ENVIRONMENT}-cluster}"
           SERVICE_NAME="${ECS_SERVICE_NAME:-${PROJECT_NAME}-${ENVIRONMENT}-app-service}"
+          LOAD_BALANCER_NAME="${ALB_NAME:-${PROJECT_NAME}-${ENVIRONMENT}-alb}"
 
           echo "RESOLVED_ECS_CLUSTER_NAME=${CLUSTER_NAME}" >> "$GITHUB_ENV"
           echo "RESOLVED_ECS_SERVICE_NAME=${SERVICE_NAME}" >> "$GITHUB_ENV"
+          echo "RESOLVED_ALB_NAME=${LOAD_BALANCER_NAME}" >> "$GITHUB_ENV"
 
       - name: Configure AWS credentials with session token
         if: env.AWS_SESSION_TOKEN != ''
@@ -72,26 +75,9 @@ jobs:
       - name: Print public endpoint
         shell: bash
         run: |
-          TASK_ARN="$(aws ecs list-tasks \
-            --cluster "$RESOLVED_ECS_CLUSTER_NAME" \
-            --service-name "$RESOLVED_ECS_SERVICE_NAME" \
-            --query "taskArns[0]" \
+          ALB_DNS_NAME="$(aws elbv2 describe-load-balancers \
+            --names "$RESOLVED_ALB_NAME" \
+            --query "LoadBalancers[0].DNSName" \
             --output text)"
 
-          if [ "$TASK_ARN" = "None" ] || [ -z "$TASK_ARN" ]; then
-            echo "No running ECS task found for $RESOLVED_ECS_SERVICE_NAME"
-            exit 1
-          fi
-
-          ENI_ID="$(aws ecs describe-tasks \
-            --cluster "$RESOLVED_ECS_CLUSTER_NAME" \
-            --tasks "$TASK_ARN" \
-            --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" \
-            --output text)"
-
-          PUBLIC_IP="$(aws ec2 describe-network-interfaces \
-            --network-interface-ids "$ENI_ID" \
-            --query "NetworkInterfaces[0].Association.PublicIp" \
-            --output text)"
-
-          echo "Application URL: http://$PUBLIC_IP"
+          echo "Application URL: http://$ALB_DNS_NAME"

@@ -11,9 +11,9 @@ data "aws_ami" "amazon_linux_2023" {
 resource "aws_instance" "database" {
   ami                         = data.aws_ami.amazon_linux_2023.id
   instance_type               = var.db_instance_type
-  subnet_id                   = aws_subnet.public.id
+  subnet_id                   = aws_subnet.private[0].id
   vpc_security_group_ids      = [aws_security_group.database.id]
-  associate_public_ip_address = true
+  associate_public_ip_address = false
   key_name                    = var.key_pair_name
 
   user_data_replace_on_change = true
