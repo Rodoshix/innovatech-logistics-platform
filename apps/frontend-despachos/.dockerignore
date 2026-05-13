@@ -1,10 +1,9 @@
 .env
-*.iml
-.idea/
-*.log
-
-target/
-.settings/
+.env.*
+node_modules/
+dist/
+build/
+npm-debug.log*
 
 .git/
 .gitignore
