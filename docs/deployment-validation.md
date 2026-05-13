@@ -65,28 +65,17 @@ La task debe estar en `RUNNING` y los contenedores deben aparecer activos.
 ## Obtener URL publica
 
 ```bash
-ENI_ID=$(aws ecs describe-tasks \
-  --region "$AWS_REGION" \
-  --cluster "$ECS_CLUSTER_NAME" \
-  --tasks "$TASK_ARN" \
-  --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" \
-  --output text)
-
-PUBLIC_IP=$(aws ec2 describe-network-interfaces \
-  --region "$AWS_REGION" \
-  --network-interface-ids "$ENI_ID" \
-  --query "NetworkInterfaces[0].Association.PublicIp" \
-  --output text)
-
-echo "http://$PUBLIC_IP"
+cd infra/terraform
+APPLICATION_URL=$(terraform output -raw application_url)
+echo "$APPLICATION_URL"
 ```
 
 ## Probar endpoints
 
 ```bash
-curl "http://$PUBLIC_IP/health"
-curl "http://$PUBLIC_IP/api/v1/despachos"
-curl "http://$PUBLIC_IP/api/v1/ventas"
+curl "$APPLICATION_URL/health"
+curl "$APPLICATION_URL/api/v1/despachos"
+curl "$APPLICATION_URL/api/v1/ventas"
 ```
 
 Resultado esperado:
@@ -137,3 +126,10 @@ Si las APIs no conectan a MySQL:
 - Confirmar que `database_private_ip` de Terraform coincide con `DB_ENDPOINT` en la task definition.
 - Confirmar que el Security Group de base de datos permite trafico desde el Security Group de ECS.
 - Revisar logs de `api-despachos` y `api-ventas` en CloudWatch.
+
+Si el ALB no responde:
+
+- Confirmar que `terraform output application_url` retorna un DNS valido.
+- Confirmar que el target group tiene una task `healthy`.
+- Confirmar que el Security Group del ALB permite HTTP desde internet.
+- Confirmar que el Security Group de ECS permite HTTP desde el ALB.

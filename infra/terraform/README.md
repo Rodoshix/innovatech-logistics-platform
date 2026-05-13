@@ -4,14 +4,15 @@ Esta carpeta contiene la infraestructura AWS definida como codigo.
 
 ## Recursos
 
-- Red base: VPC, subred publica, Internet Gateway y tabla de rutas publica.
-- Security Groups para entrada publica, trafico interno y acceso a base de datos.
+- Red base: VPC, subnets publicas, subnets privadas, Internet Gateway, NAT Gateway y tablas de rutas separadas.
+- Security Groups para ALB publico, tareas ECS privadas y acceso a base de datos.
+- Application Load Balancer publico para exponer la aplicacion.
 - Amazon ECR para las imagenes de `frontend-despachos`, `api-despachos` y `api-ventas`.
-- Amazon ECS Fargate para ejecutar la aplicacion contenerizada.
-- Amazon EC2 con Docker para ejecutar MySQL con volumen persistente.
+- Amazon ECS Fargate para ejecutar la aplicacion contenerizada en subnets privadas.
+- Amazon EC2 privado con Docker para ejecutar MySQL con volumen persistente.
 - CloudWatch Log Groups para logs de servicios.
 - Referencia a `LabRole` para ejecucion de recursos administrados.
-- Outputs para IDs, nombres, URLs de repositorios, servicio ECS e IP privada de base de datos.
+- Outputs para IDs, nombres, URLs de repositorios, servicio ECS, ALB publico e IP privada de base de datos.
 
 ## Variables
 

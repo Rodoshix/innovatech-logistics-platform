@@ -18,9 +18,14 @@ output "vpc_id" {
   value       = aws_vpc.main.id
 }
 
-output "public_subnet_id" {
-  description = "ID of the public subnet."
-  value       = aws_subnet.public.id
+output "public_subnet_ids" {
+  description = "IDs of the public subnets."
+  value       = aws_subnet.public[*].id
+}
+
+output "private_subnet_ids" {
+  description = "IDs of the private subnets."
+  value       = aws_subnet.private[*].id
 }
 
 output "internet_gateway_id" {
@@ -28,19 +33,19 @@ output "internet_gateway_id" {
   value       = aws_internet_gateway.main.id
 }
 
-output "frontend_security_group_id" {
-  description = "Security group ID for frontend traffic."
-  value       = aws_security_group.frontend.id
-}
-
-output "backend_security_group_id" {
-  description = "Security group ID for backend traffic."
-  value       = aws_security_group.backend.id
+output "nat_gateway_id" {
+  description = "ID of the NAT gateway used by private subnets."
+  value       = aws_nat_gateway.main.id
 }
 
 output "database_security_group_id" {
   description = "Security group ID for database traffic."
   value       = aws_security_group.database.id
+}
+
+output "alb_security_group_id" {
+  description = "Security group ID attached to the application load balancer."
+  value       = aws_security_group.alb.id
 }
 
 output "ecs_app_security_group_id" {
@@ -84,6 +89,16 @@ output "ecs_service_name" {
 output "ecs_task_definition_arn" {
   description = "ARN of the ECS task definition."
   value       = aws_ecs_task_definition.app.arn
+}
+
+output "alb_dns_name" {
+  description = "DNS name of the public application load balancer."
+  value       = aws_lb.app.dns_name
+}
+
+output "application_url" {
+  description = "Public HTTP URL exposed by the application load balancer."
+  value       = "http://${aws_lb.app.dns_name}"
 }
 
 output "lab_role_arn" {

@@ -118,12 +118,20 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = [aws_subnet.public.id]
+    subnets          = aws_subnet.private[*].id
     security_groups  = [aws_security_group.ecs_app.id]
-    assign_public_ip = true
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn
+    container_name   = "frontend-despachos"
+    container_port   = 80
   }
 
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-app-service"
   })
+
+  depends_on = [aws_lb_listener.http]
 }
