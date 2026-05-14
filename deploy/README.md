@@ -36,6 +36,7 @@ El archivo `.env` contiene las variables utilizadas por MySQL y por los servicio
 | `DB_NAME` | APIs | Nombre de la base de datos usada por las APIs. |
 | `DB_USERNAME` | APIs | Usuario usado por las APIs para conectar a MySQL. |
 | `DB_PASSWORD` | APIs | Password usado por las APIs para conectar a MySQL. |
+| `APP_SEED_ENABLED` | APIs | Habilita la carga de datos iniciales cuando las tablas estan vacias. |
 | `SERVER_PORT` | APIs | Puerto interno definido por servicio en `docker-compose.yml`. |
 
 ## Levantar el stack
