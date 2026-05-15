@@ -32,7 +32,8 @@ resource "aws_ecs_task_definition" "app" {
         { name = "DB_PORT", value = "3306" },
         { name = "DB_NAME", value = var.db_name },
         { name = "DB_USERNAME", value = var.db_username },
-        { name = "DB_PASSWORD", value = var.db_password }
+        { name = "DB_PASSWORD", value = var.db_password },
+        { name = "APP_SEED_ENABLED", value = "true" }
       ]
       logConfiguration = {
         logDriver = "awslogs"
@@ -59,7 +60,8 @@ resource "aws_ecs_task_definition" "app" {
         { name = "DB_PORT", value = "3306" },
         { name = "DB_NAME", value = var.db_name },
         { name = "DB_USERNAME", value = var.db_username },
-        { name = "DB_PASSWORD", value = var.db_password }
+        { name = "DB_PASSWORD", value = var.db_password },
+        { name = "APP_SEED_ENABLED", value = "true" }
       ]
       logConfiguration = {
         logDriver = "awslogs"
