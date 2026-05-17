@@ -1,0 +1,88 @@
+name: innovatech-logistics
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: innovatech-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - innovatech-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api-despachos:
+    build:
+      context: ../apps/api-despachos
+    image: innovatech-api-despachos:local
+    container_name: innovatech-api-despachos
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      DB_ENDPOINT: ${DB_ENDPOINT}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_SEED_ENABLED: ${APP_SEED_ENABLED:-true}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - innovatech-net
+
+  api-ventas:
+    build:
+      context: ../apps/api-ventas
+    image: innovatech-api-ventas:local
+    container_name: innovatech-api-ventas
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8081
+      DB_ENDPOINT: ${DB_ENDPOINT}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_SEED_ENABLED: ${APP_SEED_ENABLED:-true}
+    ports:
+      - "8081:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - innovatech-net
+
+  frontend-despachos:
+    build:
+      context: ../apps/frontend-despachos
+    image: innovatech-frontend-despachos:local
+    container_name: innovatech-frontend-despachos
+    restart: unless-stopped
+    ports:
+      - "80:8082"
+    depends_on:
+      - api-despachos
+      - api-ventas
+    networks:
+      - innovatech-net
+
+volumes:
+  mysql_data:
+
+networks:
+  innovatech-net:
+    driver: bridge

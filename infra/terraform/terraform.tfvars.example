@@ -1,0 +1,20 @@
+aws_region   = "us-east-1"
+project_name = "innovatech-logistics"
+environment  = "dev"
+
+vpc_cidr           = "10.20.0.0/16"
+public_subnet_cidrs  = ["10.20.1.0/24", "10.20.2.0/24"]
+private_subnet_cidrs = ["10.20.11.0/24", "10.20.12.0/24"]
+
+db_instance_type = "t3.micro"
+db_volume_size   = 20
+db_name          = "innovatech"
+db_username      = "innovatech_app"
+db_password      = "change-me-app"
+db_root_password = "change-me-root"
+key_pair_name    = null
+
+app_image_tag     = "latest"
+app_desired_count = 1
+app_task_cpu      = 1024
+app_task_memory   = 2048
