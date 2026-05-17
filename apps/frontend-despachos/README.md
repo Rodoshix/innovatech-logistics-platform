@@ -1,8 +1,13 @@
-# React + Vite
+# Frontend Despachos
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicacion React/Vite servida por Nginx para la gestion de ventas y despachos.
 
-Currently, two official plugins are available:
+## Runtime en contenedor
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- La imagen final usa Nginx sin privilegios de root.
+- El contenedor escucha internamente en el puerto `8082`.
+- En ambiente local, Docker Compose publica la aplicacion por `http://localhost`.
+
+## Nota de despliegue
+
+Esta actualizacion tambien fuerza una nueva ejecucion del flujo CI/CD en la rama `deploy`, necesaria para volver a publicar las imagenes en Amazon ECR despues de recrear la infraestructura.
