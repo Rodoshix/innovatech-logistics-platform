@@ -22,7 +22,7 @@ resource "aws_ecs_task_definition" "app" {
       essential = true
       portMappings = [
         {
-          containerPort = 8082
+          containerPort = 8080
           protocol      = "tcp"
         }
       ]
@@ -78,7 +78,7 @@ resource "aws_ecs_task_definition" "app" {
       essential = true
       portMappings = [
         {
-          containerPort = 8080
+          containerPort = 8082
           protocol      = "tcp"
         }
       ]
