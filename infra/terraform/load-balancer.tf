@@ -12,7 +12,7 @@ resource "aws_lb" "app" {
 
 resource "aws_lb_target_group" "app" {
   name        = "${local.name_prefix}-tg"
-  port        = 8080
+  port        = 8082
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = aws_vpc.main.id
