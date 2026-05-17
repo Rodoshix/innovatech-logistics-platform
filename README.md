@@ -53,7 +53,7 @@ innovatech-logistics-platform/
 
 | Componente | Ruta | Tecnologia | Puerto |
 | --- | --- | --- | --- |
-| Frontend despachos | `apps/frontend-despachos` | React/Vite + Nginx | `8080` interno / `80` publico |
+| Frontend despachos | `apps/frontend-despachos` | React/Vite + Nginx | `8082` interno / `80` publico |
 | API despachos | `apps/api-despachos` | Spring Boot + Java 17 | `8080` |
 | API ventas | `apps/api-ventas` | Spring Boot + Java 17 | `8081` |
 | Base de datos local | `deploy/docker-compose.yml` | MySQL 8.4 | `3306` |
