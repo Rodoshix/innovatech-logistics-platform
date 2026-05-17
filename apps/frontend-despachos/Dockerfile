@@ -16,6 +16,6 @@ ENV API_DESPACHOS_UPSTREAM=api-despachos:8080
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
-EXPOSE 8080
+EXPOSE 8082
 
 CMD ["nginx", "-g", "daemon off;"]

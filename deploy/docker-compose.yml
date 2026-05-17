@@ -73,7 +73,7 @@ services:
     container_name: innovatech-frontend-despachos
     restart: unless-stopped
     ports:
-      - "80:8080"
+      - "80:8082"
     depends_on:
       - api-despachos
       - api-ventas
