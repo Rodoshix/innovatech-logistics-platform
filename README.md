@@ -91,10 +91,7 @@ La arquitectura objetivo de Kubernetes esta documentada en [docs/eks-architectur
 
 Los workflows se encuentran en [.github/workflows](.github/workflows):
 
-- `container-images.yml`: construye imagenes Docker y publica en ECR desde `deploy`.
-- `ecs-deploy.yml`: actualiza el servicio ECS despues de publicar imagenes.
-
-El flujo de despliegue Kubernetes se incorporara sobre esta base para publicar imagenes, configurar `kubectl`, aplicar manifiestos y validar rollouts en EKS.
+- `container-images.yml`: ejecuta `EKS Delivery`, construye imagenes Docker, publica en ECR, configura `kubectl`, aplica manifiestos Kubernetes y valida rollouts en EKS cuando corresponde.
 
 ## Despliegue
 
