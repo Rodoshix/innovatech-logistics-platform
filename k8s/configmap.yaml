@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: innovatech-config
+  namespace: innovatech
+  labels:
+    app.kubernetes.io/name: innovatech-logistics
+    app.kubernetes.io/part-of: innovatech-logistics-platform
+data:
+  DB_ENDPOINT: "CHANGE_ME_DATABASE_PRIVATE_IP"
+  DB_PORT: "3306"
+  DB_NAME: "innovatech"
+  APP_SEED_ENABLED: "true"
+  API_DESPACHOS_UPSTREAM: "api-despachos:8080"
+  API_VENTAS_UPSTREAM: "api-ventas:8081"
+
