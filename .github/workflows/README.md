@@ -4,16 +4,32 @@ Esta carpeta contiene los workflows CI/CD del proyecto.
 
 ## Workflows
 
-- `container-images.yml`: construye las imagenes Docker de `frontend-despachos`, `api-despachos` y `api-ventas`.
-- `ecs-deploy.yml`: actualiza el servicio ECS cuando las imagenes ya fueron publicadas.
+- `container-images.yml`: ejecuta el flujo `EKS Delivery`. Construye las imagenes Docker, publica en Amazon ECR cuando corresponde y despliega los manifiestos Kubernetes en EKS.
 
 ## Comportamiento
 
 - En pull requests hacia `develop`, el workflow construye las imagenes para validar Dockerfiles y dependencias.
 - En push hacia `develop`, el workflow construye las imagenes sin publicarlas.
-- En push hacia `deploy`, el workflow construye y publica las imagenes en Amazon ECR.
-- Cuando la publicacion de imagenes termina correctamente en `deploy`, el workflow de ECS fuerza un nuevo despliegue del servicio.
-- Ambos workflows pueden ejecutarse manualmente desde GitHub Actions con `workflow_dispatch`.
+- En push hacia `deploy`, el workflow construye, publica imagenes en Amazon ECR y despliega en EKS.
+- En push hacia `main`, el workflow ejecuta el mismo flujo de release para la version estable.
+- El workflow puede ejecutarse manualmente desde GitHub Actions con `workflow_dispatch`.
+
+## Pasos visibles del flujo
+
+El workflow muestra pasos separados para facilitar revision operacional:
+
+1. Checkout.
+2. Preparacion de Docker Buildx.
+3. Configuracion de credenciales AWS.
+4. Login en Amazon ECR.
+5. Build y push de imagenes.
+6. Resolucion de cluster, registry y base de datos.
+7. Configuracion de `kubectl`.
+8. Preparacion de manifiestos Kubernetes.
+9. Aplicacion de namespace y secreto de base de datos.
+10. Aplicacion de manifiestos.
+11. Espera de rollouts.
+12. Publicacion del estado y endpoint.
 
 ## Variables
 
@@ -24,9 +40,8 @@ Configurar en GitHub Actions como repository variables:
 | `AWS_REGION` | Region AWS, por ejemplo `us-east-1`. |
 | `PROJECT_NAME` | Nombre base usado por Terraform, por ejemplo `innovatech-logistics`. |
 | `ENVIRONMENT` | Ambiente usado por Terraform, por ejemplo `dev`. |
-| `ECS_CLUSTER_NAME` | Nombre del cluster ECS. Si no se configura, se calcula desde `PROJECT_NAME` y `ENVIRONMENT`. |
-| `ECS_SERVICE_NAME` | Nombre del servicio ECS. Si no se configura, se calcula desde `PROJECT_NAME` y `ENVIRONMENT`. |
-| `ALB_NAME` | Nombre del Application Load Balancer. Si no se configura, se calcula desde `PROJECT_NAME` y `ENVIRONMENT`. |
+| `EKS_CLUSTER_NAME` | Nombre del cluster EKS. Si no se configura, se calcula desde `PROJECT_NAME` y `ENVIRONMENT`. |
+| `DB_ENDPOINT` | IP privada o DNS de la base de datos. Si no se configura, el workflow intenta resolver la instancia por tags de Terraform. |
 
 Si no se configuran, el workflow usa los valores por defecto del modulo Terraform.
 
@@ -39,7 +54,9 @@ Configurar en GitHub Actions como repository secrets:
 | `AWS_ACCESS_KEY_ID` | Access key usada por AWS CLI y ECR. |
 | `AWS_SECRET_ACCESS_KEY` | Secret key asociada. |
 | `AWS_SESSION_TOKEN` | Token temporal si la cuenta lo requiere. |
+| `DB_USERNAME` | Usuario de aplicacion para MySQL. |
+| `DB_PASSWORD` | Password de aplicacion para MySQL. |
 
-Los secrets AWS son necesarios cuando el workflow publica imagenes en ECR o actualiza ECS. Los repositorios ECR, el cluster y el servicio ECS deben existir antes de ejecutar el despliegue. Se crean con Terraform.
+Los secrets AWS son necesarios cuando el workflow publica imagenes en ECR o despliega en EKS. Los repositorios ECR, el cluster EKS, los nodos y la base de datos deben existir antes de ejecutar el despliegue. Se crean con Terraform.
 
 La guia completa de configuracion esta disponible en `docs/aws-setup.md`.
