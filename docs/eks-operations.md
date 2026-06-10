@@ -92,6 +92,37 @@ Comando esperado:
 kubectl get all -n innovatech
 ```
 
+## Manifiestos Kubernetes
+
+Los manifiestos de aplicacion se mantienen en `k8s/` e incluyen:
+
+- Namespace.
+- ConfigMap.
+- Secret de ejemplo.
+- Deployments.
+- Services internos.
+- Ingress.
+- HPA.
+- Kustomization.
+
+La guia especifica de aplicacion se encuentra en `k8s/README.md`.
+
+Flujo operativo esperado:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+
+kubectl create secret generic innovatech-db-secret \
+  --namespace innovatech \
+  --from-literal=DB_USERNAME="$DB_USERNAME" \
+  --from-literal=DB_PASSWORD="$DB_PASSWORD" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl apply -k k8s
+```
+
+Luego se debe actualizar el `ConfigMap` con la IP privada de la base de datos entregada por Terraform y reiniciar los deployments para tomar la configuracion actualizada.
+
 ## Validacion de workloads
 
 Una vez aplicados los manifiestos Kubernetes:
