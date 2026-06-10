@@ -113,3 +113,23 @@ output "cloudwatch_log_group_names" {
     service => log_group.name
   }
 }
+
+output "eks_cluster_name" {
+  description = "Name of the EKS cluster."
+  value       = aws_eks_cluster.main.name
+}
+
+output "eks_cluster_endpoint" {
+  description = "Kubernetes API endpoint for the EKS cluster."
+  value       = aws_eks_cluster.main.endpoint
+}
+
+output "eks_cluster_security_group_id" {
+  description = "Security group created by EKS for the cluster."
+  value       = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
+}
+
+output "eks_node_group_name" {
+  description = "Name of the EKS managed node group."
+  value       = aws_eks_node_group.application.node_group_name
+}

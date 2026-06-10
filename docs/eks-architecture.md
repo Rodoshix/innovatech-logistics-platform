@@ -147,6 +147,8 @@ kubectl logs -n innovatech deploy/frontend-despachos
 kubectl rollout status deployment/frontend-despachos -n innovatech
 ```
 
+La guia operativa de comandos y validaciones del cluster se mantiene en `docs/eks-operations.md`.
+
 ## Decisiones
 
 ### Usar EKS como capa de orquestacion
