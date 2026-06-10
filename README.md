@@ -95,7 +95,7 @@ Los workflows se encuentran en [.github/workflows](.github/workflows):
 
 ## Despliegue
 
-El flujo manual y automatizado de despliegue hacia AWS ECS esta documentado en [deploy/aws-ecs.md](deploy/aws-ecs.md).
+El flujo de despliegue hacia Amazon EKS esta documentado en [docs/eks-operations.md](docs/eks-operations.md) y los manifiestos Kubernetes se encuentran en [k8s](k8s).
 
 ## Configuracion
 
@@ -103,7 +103,7 @@ La preparacion de AWS CLI, Terraform variables y GitHub Secrets/Variables esta d
 
 ## Validacion
 
-El checklist de validacion del despliegue, revision de ECS y logs CloudWatch esta documentado en [docs/deployment-validation.md](docs/deployment-validation.md).
+El checklist de validacion del despliegue, revision de Kubernetes y pruebas de endpoints esta documentado en [docs/deployment-validation.md](docs/deployment-validation.md).
 
 ## Release
 
