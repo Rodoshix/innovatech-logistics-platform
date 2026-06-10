@@ -52,11 +52,11 @@ resource "aws_security_group" "ecs_app" {
 
 resource "aws_security_group" "database" {
   name        = "${local.name_prefix}-database-sg"
-  description = "Database access from ECS application tasks."
+  description = "Database access from private application workloads."
   vpc_id      = aws_vpc.main.id
 
   ingress {
-    description     = "MySQL from ECS"
+    description     = "MySQL from ECS tasks"
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
@@ -74,4 +74,14 @@ resource "aws_security_group" "database" {
   tags = merge(local.common_tags, {
     Name = "${local.name_prefix}-database-sg"
   })
+}
+
+resource "aws_security_group_rule" "database_mysql_from_eks" {
+  type                     = "ingress"
+  description              = "MySQL from EKS workloads"
+  from_port                = 3306
+  to_port                  = 3306
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.database.id
+  source_security_group_id = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
 }
