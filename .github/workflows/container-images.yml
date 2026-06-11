@@ -196,6 +196,13 @@ jobs:
 
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
+          kubectl create secret generic aws-load-balancer-controller-credentials \
+            --namespace kube-system \
+            --from-literal=AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+            --from-literal=AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+            --from-literal=AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
           helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
             --namespace kube-system \
             --set clusterName="$RESOLVED_EKS_CLUSTER_NAME" \
@@ -203,6 +210,7 @@ jobs:
             --set vpcId="$VPC_ID" \
             --set serviceAccount.create=true \
             --set serviceAccount.name=aws-load-balancer-controller \
+            --set envFrom[0].secretRef.name=aws-load-balancer-controller-credentials \
             --wait
 
           kubectl rollout status deployment/metrics-server -n kube-system --timeout=180s

@@ -11,9 +11,9 @@ Esta carpeta documenta los complementos necesarios para operar los manifiestos K
 
 ## Restriccion IAM
 
-El entorno usa el rol disponible del laboratorio AWS y no crea roles IAM nuevos desde Terraform. Por ese motivo, el AWS Load Balancer Controller se instala sin IRSA propio y utiliza las credenciales disponibles desde los nodos EKS.
+El entorno usa el rol disponible del laboratorio AWS y no crea roles IAM nuevos desde Terraform. Por ese motivo, el AWS Load Balancer Controller se instala sin IRSA propio y recibe credenciales temporales desde un Secret Kubernetes creado durante la instalacion.
 
-Esto funciona si el rol asociado a los nodos tiene permisos suficientes para administrar balanceadores, target groups, security groups y recursos relacionados. Si el laboratorio restringe esos permisos, el controller se instalara, pero el `Ingress` mostrara eventos de error al intentar crear el ALB.
+Esto funciona mientras las credenciales temporales del laboratorio esten activas y tengan permisos suficientes para administrar balanceadores, target groups, security groups y recursos relacionados. Cuando el token del laboratorio expire, se debe renovar el Secret ejecutando nuevamente el script o el workflow.
 
 ## Instalacion manual
 
@@ -29,6 +29,9 @@ Variables opcionales:
 export AWS_REGION="us-east-1"
 export EKS_CLUSTER_NAME="innovatech-logistics-dev-eks"
 export VPC_ID="$(terraform -chdir=infra/terraform output -raw vpc_id)"
+export AWS_ACCESS_KEY_ID="<access-key>"
+export AWS_SECRET_ACCESS_KEY="<secret-key>"
+export AWS_SESSION_TOKEN="<session-token>"
 
 bash scripts/eks/install-addons.sh
 ```
