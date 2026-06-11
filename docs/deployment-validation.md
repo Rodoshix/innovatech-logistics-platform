@@ -160,6 +160,8 @@ Si las APIs no conectan a MySQL:
 Si el Ingress no entrega URL publica:
 
 - Confirmar que AWS Load Balancer Controller esta instalado.
+- Confirmar que el Secret `aws-load-balancer-controller-credentials` existe en `kube-system`.
+- Confirmar que las credenciales temporales AWS no expiraron.
 - Revisar eventos del Ingress.
 - Confirmar que las subnets publicas tienen tags de Kubernetes para balanceadores externos.
 - Confirmar que el Ingress usa `ingressClassName: alb`.
