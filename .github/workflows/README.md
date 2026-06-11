@@ -25,11 +25,12 @@ El workflow muestra pasos separados para facilitar revision operacional:
 5. Build y push de imagenes.
 6. Resolucion de cluster, registry y base de datos.
 7. Configuracion de `kubectl`.
-8. Preparacion de manifiestos Kubernetes.
-9. Aplicacion de namespace y secreto de base de datos.
-10. Aplicacion de manifiestos.
-11. Espera de rollouts.
-12. Publicacion del estado y endpoint.
+8. Instalacion o actualizacion de add-ons EKS.
+9. Preparacion de manifiestos Kubernetes.
+10. Aplicacion de namespace y secreto de base de datos.
+11. Aplicacion de manifiestos.
+12. Espera de rollouts.
+13. Publicacion del estado y endpoint.
 
 ## Variables
 
@@ -58,5 +59,7 @@ Configurar en GitHub Actions como repository secrets:
 | `DB_PASSWORD` | Password de aplicacion para MySQL. |
 
 Los secrets AWS son necesarios cuando el workflow publica imagenes en ECR o despliega en EKS. Los repositorios ECR, el cluster EKS, los nodos y la base de datos deben existir antes de ejecutar el despliegue. Se crean con Terraform.
+
+El workflow tambien requiere que el runner tenga acceso a `kubectl` y `helm`. Los runners `ubuntu-latest` de GitHub Actions incluyen estas herramientas o permiten usarlas directamente durante la ejecucion.
 
 La guia completa de configuracion esta disponible en `docs/aws-setup.md`.

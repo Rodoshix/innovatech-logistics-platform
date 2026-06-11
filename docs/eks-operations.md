@@ -107,6 +107,21 @@ Los manifiestos de aplicacion se mantienen en `k8s/` e incluyen:
 
 La guia especifica de aplicacion se encuentra en `k8s/README.md`.
 
+## Add-ons del cluster
+
+Antes de aplicar los manifiestos de aplicacion, el cluster requiere:
+
+- AWS Load Balancer Controller para procesar el `Ingress` y crear el ALB.
+- Metrics Server para entregar metricas al HPA.
+
+Instalacion manual:
+
+```bash
+bash scripts/eks/install-addons.sh
+```
+
+La guia especifica se encuentra en `k8s/addons/README.md`.
+
 Flujo operativo esperado:
 
 ```bash
