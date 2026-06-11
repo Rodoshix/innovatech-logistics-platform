@@ -62,6 +62,22 @@ Resultado esperado:
 - HPA creado para frontend y APIs.
 - Ingress creado para entrada publica.
 
+## Estado de add-ons
+
+Validar AWS Load Balancer Controller:
+
+```bash
+kubectl get deployment -n kube-system aws-load-balancer-controller
+kubectl logs -n kube-system deployment/aws-load-balancer-controller
+```
+
+Validar Metrics Server:
+
+```bash
+kubectl get deployment -n kube-system metrics-server
+kubectl get apiservice v1beta1.metrics.k8s.io
+```
+
 ## Obtener URL publica
 
 Obtener hostname del Ingress:
