@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-despachos
+  namespace: innovatech
+  labels:
+    app.kubernetes.io/name: api-despachos
+    app.kubernetes.io/part-of: innovatech-logistics-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api-despachos
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: api-despachos
+        app.kubernetes.io/part-of: innovatech-logistics-platform
+    spec:
+      containers:
+        - name: api-despachos
+          image: 000000000000.dkr.ecr.us-east-1.amazonaws.com/innovatech-logistics-dev-api-despachos:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: DB_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: DB_ENDPOINT
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: DB_NAME
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: innovatech-db-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: innovatech-db-secret
+                  key: DB_PASSWORD
+            - name: APP_SEED_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: APP_SEED_ENABLED
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 768Mi

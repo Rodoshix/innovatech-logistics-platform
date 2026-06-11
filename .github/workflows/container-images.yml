@@ -1,4 +1,4 @@
-name: Container Images
+name: EKS Delivery
 
 on:
   pull_request:
@@ -7,21 +7,28 @@ on:
     paths:
       - "apps/**"
       - ".github/workflows/container-images.yml"
+      - "k8s/**"
   push:
     branches:
       - develop
       - deploy
+      - main
     paths:
       - "apps/**"
       - ".github/workflows/container-images.yml"
+      - "k8s/**"
   workflow_dispatch:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
   PROJECT_NAME: ${{ vars.PROJECT_NAME || 'innovatech-logistics' }}
   ENVIRONMENT: ${{ vars.ENVIRONMENT || 'dev' }}
+  EKS_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}
+  DB_ENDPOINT: ${{ vars.DB_ENDPOINT }}
+  DB_USERNAME: ${{ secrets.DB_USERNAME }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
   AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-  PUBLISH_IMAGE: ${{ github.ref == 'refs/heads/deploy' || github.event_name == 'workflow_dispatch' }}
+  RELEASE_ENABLED: ${{ github.ref == 'refs/heads/deploy' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
 
 jobs:
   build:
@@ -54,12 +61,13 @@ jobs:
           REPOSITORY="${PROJECT_NAME}-${ENVIRONMENT}-${{ matrix.service }}"
           echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "repository=${REPOSITORY}" >> "$GITHUB_OUTPUT"
+          echo "Image repository: ${REPOSITORY}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Configure AWS credentials with session token
-        if: env.PUBLISH_IMAGE == 'true' && env.AWS_SESSION_TOKEN != ''
+        if: env.RELEASE_ENABLED == 'true' && env.AWS_SESSION_TOKEN != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -68,7 +76,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Configure AWS credentials
-        if: env.PUBLISH_IMAGE == 'true' && env.AWS_SESSION_TOKEN == ''
+        if: env.RELEASE_ENABLED == 'true' && env.AWS_SESSION_TOKEN == ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -76,12 +84,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        if: env.PUBLISH_IMAGE == 'true'
+        if: env.RELEASE_ENABLED == 'true'
         id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build image
-        if: env.PUBLISH_IMAGE != 'true'
+      - name: Build image for validation
+        if: env.RELEASE_ENABLED != 'true'
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
@@ -89,7 +97,7 @@ jobs:
           tags: ${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.short_sha }}
 
       - name: Build and push image to ECR
-        if: env.PUBLISH_IMAGE == 'true'
+        if: env.RELEASE_ENABLED == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
@@ -97,3 +105,154 @@ jobs:
           tags: |
             ${{ steps.ecr.outputs.registry }}/${{ steps.meta.outputs.repository }}:latest
             ${{ steps.ecr.outputs.registry }}/${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.short_sha }}
+
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/deploy' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials with session token
+        if: env.AWS_SESSION_TOKEN != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ env.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure AWS credentials
+        if: env.AWS_SESSION_TOKEN == ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Resolve deployment settings
+        shell: bash
+        run: |
+          ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
+          ECR_REGISTRY="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+          CLUSTER_NAME="${EKS_CLUSTER_NAME:-${PROJECT_NAME}-${ENVIRONMENT}-eks}"
+          DATABASE_ENDPOINT="${DB_ENDPOINT:-}"
+
+          if [ -z "$DATABASE_ENDPOINT" ]; then
+            DATABASE_ENDPOINT="$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=${PROJECT_NAME}-${ENVIRONMENT}-mysql" "Name=instance-state-name,Values=running,pending" \
+              --query "Reservations[0].Instances[0].PrivateIpAddress" \
+              --output text)"
+          fi
+
+          if [ -z "$DATABASE_ENDPOINT" ] || [ "$DATABASE_ENDPOINT" = "None" ]; then
+            echo "Database endpoint could not be resolved. Configure vars.DB_ENDPOINT or create the Terraform database instance."
+            exit 1
+          fi
+
+          if [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then
+            echo "Database credentials are missing. Configure DB_USERNAME and DB_PASSWORD as GitHub Secrets."
+            exit 1
+          fi
+
+          echo "AWS_ACCOUNT_ID=${ACCOUNT_ID}" >> "$GITHUB_ENV"
+          echo "ECR_REGISTRY=${ECR_REGISTRY}" >> "$GITHUB_ENV"
+          echo "RESOLVED_EKS_CLUSTER_NAME=${CLUSTER_NAME}" >> "$GITHUB_ENV"
+          echo "RESOLVED_DB_ENDPOINT=${DATABASE_ENDPOINT}" >> "$GITHUB_ENV"
+          VPC_ID="$(aws eks describe-cluster \
+            --region "$AWS_REGION" \
+            --name "$CLUSTER_NAME" \
+            --query "cluster.resourcesVpcConfig.vpcId" \
+            --output text)"
+          echo "VPC_ID=${VPC_ID}" >> "$GITHUB_ENV"
+          echo "Cluster: ${CLUSTER_NAME}"
+          echo "ECR registry: ${ECR_REGISTRY}"
+          echo "VPC: ${VPC_ID}"
+          echo "Database endpoint resolved."
+
+      - name: Configure kubeconfig
+        shell: bash
+        run: |
+          aws eks update-kubeconfig \
+            --region "$AWS_REGION" \
+            --name "$RESOLVED_EKS_CLUSTER_NAME"
+
+          kubectl get nodes -o wide
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Install EKS add-ons
+        shell: bash
+        run: |
+          helm repo add eks https://aws.github.io/eks-charts --force-update
+          helm repo update
+
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+          helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+            --namespace kube-system \
+            --set clusterName="$RESOLVED_EKS_CLUSTER_NAME" \
+            --set region="$AWS_REGION" \
+            --set vpcId="$VPC_ID" \
+            --set serviceAccount.create=true \
+            --set serviceAccount.name=aws-load-balancer-controller \
+            --wait
+
+          kubectl rollout status deployment/metrics-server -n kube-system --timeout=180s
+          kubectl rollout status deployment/aws-load-balancer-controller -n kube-system --timeout=300s
+
+      - name: Prepare Kubernetes manifests
+        shell: bash
+        run: |
+          cp -R k8s /tmp/innovatech-k8s
+
+          find /tmp/innovatech-k8s -type f -name "*.yaml" -print0 | xargs -0 sed -i \
+            -e "s|000000000000.dkr.ecr.us-east-1.amazonaws.com|${ECR_REGISTRY}|g" \
+            -e "s|CHANGE_ME_DATABASE_PRIVATE_IP|${RESOLVED_DB_ENDPOINT}|g"
+
+          kubectl kustomize /tmp/innovatech-k8s > /tmp/innovatech-k8s/rendered.yaml
+          head -n 40 /tmp/innovatech-k8s/rendered.yaml
+
+      - name: Apply namespace and database secret
+        shell: bash
+        run: |
+          kubectl apply -f /tmp/innovatech-k8s/namespace.yaml
+
+          kubectl create secret generic innovatech-db-secret \
+            --namespace innovatech \
+            --from-literal=DB_USERNAME="$DB_USERNAME" \
+            --from-literal=DB_PASSWORD="$DB_PASSWORD" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply Kubernetes manifests
+        shell: bash
+        run: |
+          kubectl apply -k /tmp/innovatech-k8s
+
+      - name: Wait for Kubernetes rollouts
+        shell: bash
+        run: |
+          kubectl rollout status deployment/frontend-despachos -n innovatech --timeout=300s
+          kubectl rollout status deployment/api-despachos -n innovatech --timeout=300s
+          kubectl rollout status deployment/api-ventas -n innovatech --timeout=300s
+
+      - name: Print Kubernetes status
+        shell: bash
+        run: |
+          kubectl get pods,svc,ingress,hpa -n innovatech -o wide
+
+          INGRESS_HOST="$(kubectl get ingress innovatech-ingress -n innovatech \
+            -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
+
+          if [ -n "$INGRESS_HOST" ]; then
+            echo "Application URL: http://${INGRESS_HOST}"
+          else
+            echo "Ingress host is not available yet. Check AWS Load Balancer Controller and ingress status."
+          fi
