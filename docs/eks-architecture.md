@@ -160,7 +160,7 @@ El cluster requiere dos add-ons para completar el flujo Kubernetes:
 
 La instalacion se mantiene idempotente desde `scripts/eks/install-addons.sh` y tambien forma parte del workflow `EKS Delivery` antes de aplicar los manifiestos de aplicacion.
 
-Por restriccion del entorno, no se crean roles IAM nuevos. El controller se instala usando el rol disponible en los nodos EKS. Si el entorno limita permisos de balanceadores, el diagnostico debe revisarse en los eventos del `Ingress` y logs del controller.
+Por restriccion del entorno, no se crean roles IAM nuevos. El controller se instala con credenciales temporales entregadas desde un Secret Kubernetes. Si las credenciales expiran o el entorno limita permisos de balanceadores, el diagnostico debe revisarse en los eventos del `Ingress` y logs del controller.
 
 ## Decisiones
 

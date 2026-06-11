@@ -34,6 +34,22 @@ echo "VPC: ${VPC_ID}"
 
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
+AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-$(aws configure get aws_access_key_id)}"
+AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-$(aws configure get aws_secret_access_key)}"
+AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN:-$(aws configure get aws_session_token)}"
+
+if [[ -z "${AWS_ACCESS_KEY_ID}" || -z "${AWS_SECRET_ACCESS_KEY}" ]]; then
+  echo "AWS credentials are required for aws-load-balancer-controller."
+  exit 1
+fi
+
+kubectl create secret generic aws-load-balancer-controller-credentials \
+  --namespace kube-system \
+  --from-literal=AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
+  --from-literal=AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
+  --from-literal=AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN}" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 helm repo add eks https://aws.github.io/eks-charts --force-update >/dev/null
 helm repo update >/dev/null
 
@@ -44,6 +60,7 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
   --set vpcId="${VPC_ID}" \
   --set serviceAccount.create=true \
   --set serviceAccount.name=aws-load-balancer-controller \
+  --set envFrom[0].secretRef.name=aws-load-balancer-controller-credentials \
   --wait
 
 kubectl rollout status deployment/metrics-server -n kube-system --timeout=180s
