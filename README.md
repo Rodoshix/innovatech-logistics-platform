@@ -4,7 +4,7 @@ Plataforma logistica para Innovatech Chile orientada a la gestion de ventas y de
 
 ## Arquitectura
 
-La solucion se compone de una aplicacion frontend, dos servicios backend y una base de datos MySQL. En ambiente local se ejecuta con Docker Compose. En AWS se despliega con imagenes publicadas en Amazon ECR, un Application Load Balancer publico, contenedores en Amazon ECS Fargate dentro de subnets privadas, base de datos MySQL sobre EC2 privada y recursos de red administrados con Terraform.
+La solucion se compone de una aplicacion frontend, dos servicios backend y una base de datos MySQL. En ambiente local se ejecuta con Docker Compose. En AWS se trabaja con imagenes publicadas en Amazon ECR, red administrada con Terraform, entrada HTTP publica mediante balanceador de carga y workloads de aplicacion preparados para Amazon EKS sobre Kubernetes.
 
 ```text
 Usuario
@@ -26,7 +26,8 @@ Frontend Nginx / React
 - Terraform para infraestructura AWS.
 - GitHub Actions para CI/CD.
 - Amazon ECR para registro de imagenes.
-- Amazon ECS Fargate para ejecucion de contenedores.
+- Amazon EKS y Kubernetes para orquestacion de aplicaciones.
+- Amazon ECS Fargate como base previa de despliegue de contenedores.
 - Amazon EC2 para runtime MySQL.
 - Application Load Balancer para entrada HTTP publica.
 - VPC, subnets publicas/privadas, NAT Gateway, Security Groups y CloudWatch para red, seguridad y observabilidad.
@@ -44,6 +45,12 @@ innovatech-logistics-platform/
     aws-ecs.md
   infra/
     terraform/
+  k8s/
+    namespace.yaml
+    *-deployment.yaml
+    *-service.yaml
+    ingress.yaml
+    hpa.yaml
   .github/
     workflows/
   docs/
@@ -76,18 +83,19 @@ La plataforma puede ejecutarse localmente con Docker Compose desde la configurac
 
 ## Infraestructura
 
-La infraestructura AWS se define en [infra/terraform](infra/terraform). Terraform administra red publica/privada, NAT Gateway, grupos de seguridad, Application Load Balancer, repositorios ECR, ECS, EC2 para MySQL y logs en CloudWatch.
+La infraestructura AWS se define en [infra/terraform](infra/terraform). Terraform administra red publica/privada, NAT Gateway, grupos de seguridad, Application Load Balancer, repositorios ECR, EKS, ECS, EC2 para MySQL y logs en CloudWatch.
+
+La arquitectura objetivo de Kubernetes esta documentada en [docs/eks-architecture.md](docs/eks-architecture.md). La operacion del cluster EKS esta documentada en [docs/eks-operations.md](docs/eks-operations.md).
 
 ## CI/CD
 
 Los workflows se encuentran en [.github/workflows](.github/workflows):
 
-- `container-images.yml`: construye imagenes Docker y publica en ECR desde `deploy`.
-- `ecs-deploy.yml`: actualiza el servicio ECS despues de publicar imagenes.
+- `container-images.yml`: ejecuta `EKS Delivery`, construye imagenes Docker, publica en ECR, configura `kubectl`, aplica manifiestos Kubernetes y valida rollouts en EKS cuando corresponde.
 
 ## Despliegue
 
-El flujo manual y automatizado de despliegue hacia AWS ECS esta documentado en [deploy/aws-ecs.md](deploy/aws-ecs.md).
+El flujo de despliegue hacia Amazon EKS esta documentado en [docs/eks-operations.md](docs/eks-operations.md) y los manifiestos Kubernetes se encuentran en [k8s](k8s).
 
 ## Configuracion
 
@@ -95,7 +103,7 @@ La preparacion de AWS CLI, Terraform variables y GitHub Secrets/Variables esta d
 
 ## Validacion
 
-El checklist de validacion del despliegue, revision de ECS y logs CloudWatch esta documentado en [docs/deployment-validation.md](docs/deployment-validation.md).
+El checklist de validacion del despliegue, revision de Kubernetes y pruebas de endpoints esta documentado en [docs/deployment-validation.md](docs/deployment-validation.md).
 
 ## Release
 

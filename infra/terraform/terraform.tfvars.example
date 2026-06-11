@@ -18,3 +18,11 @@ app_image_tag     = "latest"
 app_desired_count = 1
 app_task_cpu      = 1024
 app_task_memory   = 2048
+
+eks_version                 = "1.30"
+eks_node_instance_types     = ["t3.small"]
+eks_node_desired_size       = 2
+eks_node_min_size           = 1
+eks_node_max_size           = 2
+eks_endpoint_public_access  = true
+eks_endpoint_private_access = true

@@ -32,15 +32,18 @@ El push a `deploy` activa:
 
 1. Build de imagenes Docker.
 2. Publicacion de imagenes en Amazon ECR.
-3. Redeploy del servicio ECS.
-4. Espera de estabilidad del servicio.
+3. Configuracion de acceso al cluster EKS.
+4. Aplicacion de manifiestos Kubernetes.
+5. Espera de rollouts de los deployments.
+6. Publicacion del estado del namespace y endpoint.
 
 ## Validar despliegue
 
 Despues del despliegue, ejecutar el checklist documentado en `docs/deployment-validation.md`:
 
-- Verificar estado del servicio ECS.
-- Obtener URL publica del Application Load Balancer.
+- Verificar estado de los deployments Kubernetes.
+- Verificar estado de pods, services, ingress y HPA en Kubernetes.
+- Obtener URL publica del Ingress/Application Load Balancer.
 - Probar `/health`.
 - Probar `/api/v1/despachos`.
 - Probar `/api/v1/ventas`.
@@ -70,7 +73,8 @@ git push origin v1.0.0
 
 - Frontend accesible desde la URL publica.
 - APIs responden correctamente a traves del frontend/Nginx.
-- ECS service en estado estable.
+- Deployments Kubernetes con rollout correcto.
+- HPA creado para los workloads principales.
 - Logs disponibles en CloudWatch.
 - MySQL operativo y accesible desde las APIs.
 - Infraestructura reproducible desde Terraform.

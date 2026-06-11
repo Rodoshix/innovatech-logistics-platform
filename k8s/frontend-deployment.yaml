@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-despachos
+  namespace: innovatech
+  labels:
+    app.kubernetes.io/name: frontend-despachos
+    app.kubernetes.io/part-of: innovatech-logistics-platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend-despachos
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend-despachos
+        app.kubernetes.io/part-of: innovatech-logistics-platform
+    spec:
+      containers:
+        - name: frontend-despachos
+          image: 000000000000.dkr.ecr.us-east-1.amazonaws.com/innovatech-logistics-dev-frontend-despachos:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8082
+          env:
+            - name: API_DESPACHOS_UPSTREAM
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: API_DESPACHOS_UPSTREAM
+            - name: API_VENTAS_UPSTREAM
+              valueFrom:
+                configMapKeyRef:
+                  name: innovatech-config
+                  key: API_VENTAS_UPSTREAM
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi

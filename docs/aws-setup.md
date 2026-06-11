@@ -45,7 +45,10 @@ Actualizar como minimo estos valores:
 | `environment` | Ambiente de despliegue. |
 | `db_password` | Password del usuario de aplicacion MySQL. |
 | `db_root_password` | Password root de MySQL. |
-| `app_image_tag` | Tag de imagen que ECS usara para los contenedores. |
+| `app_image_tag` | Tag base de imagen para los contenedores. |
+| `eks_version` | Version de Kubernetes para Amazon EKS. |
+| `eks_node_instance_types` | Tipos de instancia permitidos para el node group. |
+| `eks_node_desired_size` | Cantidad deseada de nodos del node group. |
 
 El archivo `terraform.tfvars` contiene valores sensibles y no debe versionarse.
 
@@ -58,10 +61,10 @@ Configurar en `Settings > Secrets and variables > Actions > Variables`:
 | `AWS_REGION` | `us-east-1` |
 | `PROJECT_NAME` | `innovatech-logistics` |
 | `ENVIRONMENT` | `dev` |
-| `ECS_CLUSTER_NAME` | `innovatech-logistics-dev-cluster` |
-| `ECS_SERVICE_NAME` | `innovatech-logistics-dev-app-service` |
+| `EKS_CLUSTER_NAME` | `innovatech-logistics-dev-eks` |
+| `DB_ENDPOINT` | IP privada o DNS de MySQL. Opcional si el workflow puede resolver la instancia por tags. |
 
-`ECS_CLUSTER_NAME` y `ECS_SERVICE_NAME` son opcionales si se mantiene la convencion de nombres generada por Terraform.
+`EKS_CLUSTER_NAME` es opcional si se mantiene la convencion de nombres generada por Terraform.
 
 ## GitHub repository secrets
 
@@ -72,14 +75,16 @@ Configurar en `Settings > Secrets and variables > Actions > Secrets`:
 | `AWS_ACCESS_KEY_ID` | Access key para autenticar los workflows en AWS. |
 | `AWS_SECRET_ACCESS_KEY` | Secret key asociada. |
 | `AWS_SESSION_TOKEN` | Token temporal cuando la cuenta lo requiere. |
+| `DB_USERNAME` | Usuario de aplicacion MySQL. |
+| `DB_PASSWORD` | Password del usuario de aplicacion MySQL. |
 
-Los secrets AWS se usan solo para publicar imagenes en ECR y actualizar ECS. Los pull requests hacia `develop` construyen imagenes sin publicar.
+Los secrets AWS se usan para publicar imagenes en ECR y desplegar en EKS. Los pull requests hacia `develop` construyen imagenes sin publicar.
 
 ## Orden de preparacion
 
 1. Configurar AWS CLI local.
 2. Crear `infra/terraform/terraform.tfvars`.
 3. Ejecutar `terraform init`, `terraform plan` y `terraform apply`.
-4. Confirmar que existen ECR, ECS, EC2 y CloudWatch.
+4. Confirmar que existen ECR, EKS, nodos, EC2 MySQL y CloudWatch.
 5. Configurar variables y secrets en GitHub.
-6. Actualizar la rama `deploy` desde `develop` para activar build, push y despliegue.
+6. Actualizar la rama `deploy` o `main` desde `develop` para activar build, push y despliegue.

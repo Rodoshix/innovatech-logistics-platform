@@ -1,6 +1,6 @@
 # Validacion de despliegue
 
-Esta guia contiene comandos de verificacion para confirmar que la plataforma quedo operativa despues de desplegar en AWS.
+Esta guia contiene comandos de verificacion para confirmar que la plataforma quedo operativa despues de desplegar en Amazon EKS.
 
 ## Variables de trabajo
 
@@ -8,74 +8,96 @@ Definir estos valores antes de ejecutar comandos:
 
 ```bash
 export AWS_REGION="us-east-1"
-export ECS_CLUSTER_NAME="innovatech-logistics-dev-cluster"
-export ECS_SERVICE_NAME="innovatech-logistics-dev-app-service"
+export EKS_CLUSTER_NAME="innovatech-logistics-dev-eks"
+export NAMESPACE="innovatech"
 ```
 
 En PowerShell:
 
 ```powershell
 $env:AWS_REGION="us-east-1"
-$env:ECS_CLUSTER_NAME="innovatech-logistics-dev-cluster"
-$env:ECS_SERVICE_NAME="innovatech-logistics-dev-app-service"
+$env:EKS_CLUSTER_NAME="innovatech-logistics-dev-eks"
+$env:NAMESPACE="innovatech"
 ```
 
-## Estado del servicio ECS
+## Acceso al cluster
+
+Configurar `kubectl` contra EKS:
 
 ```bash
-aws ecs describe-services \
+aws eks update-kubeconfig \
   --region "$AWS_REGION" \
-  --cluster "$ECS_CLUSTER_NAME" \
-  --services "$ECS_SERVICE_NAME" \
-  --query "services[0].{status:status,running:runningCount,desired:desiredCount,pending:pendingCount,deployments:deployments[*].rolloutState}"
+  --name "$EKS_CLUSTER_NAME"
 ```
 
-El resultado esperado es:
-
-- `status`: `ACTIVE`
-- `running`: `1`
-- `desired`: `1`
-- `pending`: `0`
-
-## Obtener task activa
+Validar nodos:
 
 ```bash
-TASK_ARN=$(aws ecs list-tasks \
-  --region "$AWS_REGION" \
-  --cluster "$ECS_CLUSTER_NAME" \
-  --service-name "$ECS_SERVICE_NAME" \
-  --query "taskArns[0]" \
-  --output text)
-
-echo "$TASK_ARN"
+kubectl get nodes -o wide
 ```
 
-## Revisar detalle de la task
+El resultado esperado es al menos un nodo en estado `Ready`.
+
+## Estado de workloads
+
+Revisar recursos principales:
 
 ```bash
-aws ecs describe-tasks \
-  --region "$AWS_REGION" \
-  --cluster "$ECS_CLUSTER_NAME" \
-  --tasks "$TASK_ARN" \
-  --query "tasks[0].{lastStatus:lastStatus,desiredStatus:desiredStatus,healthStatus:healthStatus,containers:containers[*].{name:name,lastStatus:lastStatus,exitCode:exitCode,reason:reason}}"
+kubectl get pods,deployments,svc,ingress,hpa -n "$NAMESPACE" -o wide
 ```
 
-La task debe estar en `RUNNING` y los contenedores deben aparecer activos.
+Validar rollouts:
+
+```bash
+kubectl rollout status deployment/frontend-despachos -n "$NAMESPACE"
+kubectl rollout status deployment/api-despachos -n "$NAMESPACE"
+kubectl rollout status deployment/api-ventas -n "$NAMESPACE"
+```
+
+Resultado esperado:
+
+- Deployments disponibles.
+- Pods en `Running`.
+- Services internos creados.
+- HPA creado para frontend y APIs.
+- Ingress creado para entrada publica.
+
+## Estado de add-ons
+
+Validar AWS Load Balancer Controller:
+
+```bash
+kubectl get deployment -n kube-system aws-load-balancer-controller
+kubectl logs -n kube-system deployment/aws-load-balancer-controller
+```
+
+Validar Metrics Server:
+
+```bash
+kubectl get deployment -n kube-system metrics-server
+kubectl get apiservice v1beta1.metrics.k8s.io
+```
 
 ## Obtener URL publica
 
+Obtener hostname del Ingress:
+
 ```bash
-cd infra/terraform
-APPLICATION_URL=$(terraform output -raw application_url)
-echo "$APPLICATION_URL"
+APPLICATION_HOST=$(kubectl get ingress innovatech-ingress \
+  -n "$NAMESPACE" \
+  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+echo "http://$APPLICATION_HOST"
 ```
+
+Si el hostname aparece vacio, revisar que AWS Load Balancer Controller este instalado y que el Ingress no tenga eventos de error.
 
 ## Probar endpoints
 
 ```bash
-curl "$APPLICATION_URL/health"
-curl "$APPLICATION_URL/api/v1/despachos"
-curl "$APPLICATION_URL/api/v1/ventas"
+curl "http://$APPLICATION_HOST/health"
+curl "http://$APPLICATION_HOST/api/v1/despachos"
+curl "http://$APPLICATION_HOST/api/v1/ventas"
 ```
 
 Resultado esperado:
@@ -84,52 +106,68 @@ Resultado esperado:
 - `/api/v1/despachos` responde JSON.
 - `/api/v1/ventas` responde JSON.
 
-## Logs CloudWatch
+## Logs de aplicacion
 
-Listar log groups creados por Terraform:
-
-```bash
-aws logs describe-log-groups \
-  --region "$AWS_REGION" \
-  --log-group-name-prefix "/ecs/innovatech-logistics-dev"
-```
-
-Seguir logs por servicio:
+Frontend:
 
 ```bash
-aws logs tail "/ecs/innovatech-logistics-dev/frontend-despachos" --region "$AWS_REGION" --follow
-aws logs tail "/ecs/innovatech-logistics-dev/api-despachos" --region "$AWS_REGION" --follow
-aws logs tail "/ecs/innovatech-logistics-dev/api-ventas" --region "$AWS_REGION" --follow
+kubectl logs -n "$NAMESPACE" deployment/frontend-despachos
 ```
+
+API despachos:
+
+```bash
+kubectl logs -n "$NAMESPACE" deployment/api-despachos
+```
+
+API ventas:
+
+```bash
+kubectl logs -n "$NAMESPACE" deployment/api-ventas
+```
+
+## Eventos del namespace
+
+```bash
+kubectl get events -n "$NAMESPACE" --sort-by=.lastTimestamp
+```
+
+Este comando es util para diagnosticar errores de pull de imagen, probes fallidas, Ingress sin balanceador o problemas de scheduling.
 
 ## Diagnostico rapido
 
-Si la task no queda en `RUNNING`:
+Si los pods no inician:
 
 ```bash
-aws ecs describe-services \
-  --region "$AWS_REGION" \
-  --cluster "$ECS_CLUSTER_NAME" \
-  --services "$ECS_SERVICE_NAME" \
-  --query "services[0].events[0:5]"
+kubectl describe pod -n "$NAMESPACE" <pod-name>
+kubectl logs -n "$NAMESPACE" <pod-name>
 ```
 
 Si una imagen no se encuentra:
 
 - Confirmar que los repositorios ECR existen.
-- Confirmar que el workflow `Container Images` publico los tags `latest`.
+- Confirmar que el workflow `EKS Delivery` publico los tags `latest`.
 - Confirmar que el nombre de repositorio coincide con `project_name`, `environment` y nombre del servicio.
+- Confirmar que los nodos EKS tienen permisos para descargar desde ECR.
 
 Si las APIs no conectan a MySQL:
 
 - Confirmar que la instancia EC2 de base de datos esta en ejecucion.
-- Confirmar que `database_private_ip` de Terraform coincide con `DB_ENDPOINT` en la task definition.
-- Confirmar que el Security Group de base de datos permite trafico desde el Security Group de ECS.
-- Revisar logs de `api-despachos` y `api-ventas` en CloudWatch.
+- Confirmar que `DB_ENDPOINT` en el `ConfigMap` apunta a la IP privada correcta.
+- Confirmar que el Security Group de base de datos permite trafico desde el Security Group del cluster EKS.
+- Revisar logs de `api-despachos` y `api-ventas`.
 
-Si el ALB no responde:
+Si el Ingress no entrega URL publica:
 
-- Confirmar que `terraform output application_url` retorna un DNS valido.
-- Confirmar que el target group tiene una task `healthy`.
-- Confirmar que el Security Group del ALB permite HTTP desde internet.
-- Confirmar que el Security Group de ECS permite HTTP desde el ALB.
+- Confirmar que AWS Load Balancer Controller esta instalado.
+- Confirmar que el Secret `aws-load-balancer-controller-credentials` existe en `kube-system`.
+- Confirmar que las credenciales temporales AWS no expiraron.
+- Revisar eventos del Ingress.
+- Confirmar que las subnets publicas tienen tags de Kubernetes para balanceadores externos.
+- Confirmar que el Ingress usa `ingressClassName: alb`.
+
+Si el HPA no muestra metricas:
+
+- Confirmar que Metrics Server esta instalado.
+- Confirmar que los deployments tienen `resources.requests.cpu` definido.
+- Revisar `kubectl describe hpa -n "$NAMESPACE"`.

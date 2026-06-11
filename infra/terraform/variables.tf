@@ -99,3 +99,45 @@ variable "app_task_memory" {
   type        = number
   default     = 2048
 }
+
+variable "eks_version" {
+  description = "Kubernetes version used by the EKS cluster."
+  type        = string
+  default     = "1.30"
+}
+
+variable "eks_node_instance_types" {
+  description = "EC2 instance types used by the EKS managed node group."
+  type        = list(string)
+  default     = ["t3.small"]
+}
+
+variable "eks_node_desired_size" {
+  description = "Desired number of worker nodes in the EKS managed node group."
+  type        = number
+  default     = 2
+}
+
+variable "eks_node_min_size" {
+  description = "Minimum number of worker nodes in the EKS managed node group."
+  type        = number
+  default     = 1
+}
+
+variable "eks_node_max_size" {
+  description = "Maximum number of worker nodes in the EKS managed node group."
+  type        = number
+  default     = 2
+}
+
+variable "eks_endpoint_public_access" {
+  description = "Whether the EKS Kubernetes API endpoint is reachable from the public internet."
+  type        = bool
+  default     = true
+}
+
+variable "eks_endpoint_private_access" {
+  description = "Whether the EKS Kubernetes API endpoint is reachable from inside the VPC."
+  type        = bool
+  default     = true
+}
