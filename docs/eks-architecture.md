@@ -149,6 +149,19 @@ kubectl rollout status deployment/frontend-despachos -n innovatech
 
 La guia operativa de comandos y validaciones del cluster se mantiene en `docs/eks-operations.md`.
 
+## Add-ons operativos
+
+El cluster requiere dos add-ons para completar el flujo Kubernetes:
+
+| Add-on | Uso | Instalacion |
+| --- | --- | --- |
+| AWS Load Balancer Controller | Convierte el `Ingress` de Kubernetes en un Application Load Balancer administrado por AWS. | Helm chart `eks/aws-load-balancer-controller`. |
+| Metrics Server | Expone metricas de recursos para HPA. | Manifiesto oficial de Metrics Server. |
+
+La instalacion se mantiene idempotente desde `scripts/eks/install-addons.sh` y tambien forma parte del workflow `EKS Delivery` antes de aplicar los manifiestos de aplicacion.
+
+Por restriccion del entorno, no se crean roles IAM nuevos. El controller se instala usando el rol disponible en los nodos EKS. Si el entorno limita permisos de balanceadores, el diagnostico debe revisarse en los eventos del `Ingress` y logs del controller.
+
 ## Decisiones
 
 ### Usar EKS como capa de orquestacion
@@ -171,6 +184,10 @@ El trafico hacia APIs debe usar nombres DNS internos de Kubernetes. Esto es mas 
 
 Horizontal Pod Autoscaler entrega comportamiento nativo de escalamiento Kubernetes y evidencia clara mediante `kubectl get hpa`.
 
+### Instalar add-ons de cluster desde el flujo operativo
+
+Los add-ons se instalan desde scripts y CI/CD para mantener la infraestructura Terraform enfocada en red, EKS, nodos, ECR y runtime base. Esta separacion evita agregar recursos IAM no permitidos y mantiene los complementos Kubernetes cerca de los manifiestos de aplicacion.
+
 ## Plan de migracion
 
 1. Agregar recursos Terraform para la base EKS.
@@ -183,8 +200,6 @@ Horizontal Pod Autoscaler entrega comportamiento nativo de escalamiento Kubernet
 
 ## Puntos abiertos
 
-- Confirmar si el cluster usara managed node groups o EKS Fargate profiles.
-- Confirmar si AWS Load Balancer Controller esta disponible en el entorno.
-- Confirmar la estrategia final de Ingress.
-- Definir el umbral final de CPU para HPA.
-- Definir nombre final del workflow de GitHub Actions y comportamiento de triggers.
+- Validar en ejecucion real que el rol del laboratorio permita al AWS Load Balancer Controller crear y administrar el ALB.
+- Confirmar en ejecucion real que Metrics Server entregue metricas al HPA.
+- Ajustar limites de CPU/memoria si los nodos EKS muestran presion de recursos durante las pruebas.
