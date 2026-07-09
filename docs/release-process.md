@@ -30,12 +30,14 @@ git push origin deploy
 
 El push a `deploy` activa:
 
-1. Build de imagenes Docker.
-2. Publicacion de imagenes en Amazon ECR.
-3. Configuracion de acceso al cluster EKS.
-4. Aplicacion de manifiestos Kubernetes.
-5. Espera de rollouts de los deployments.
-6. Publicacion del estado del namespace y endpoint.
+1. Pruebas y validaciones de frontend y backend.
+2. Build de imagenes Docker.
+3. Publicacion de imagenes en Amazon ECR.
+4. Configuracion de acceso al cluster EKS.
+5. Aplicacion de manifiestos Kubernetes.
+6. Espera de rollouts de los deployments.
+7. Validacion HTTP de `/health`, `/api/v1/despachos` y `/api/v1/ventas`.
+8. Publicacion del estado del namespace, imagenes, digest y endpoint en el resumen del workflow.
 
 ## Validar despliegue
 
@@ -47,7 +49,7 @@ Despues del despliegue, ejecutar el checklist documentado en `docs/deployment-va
 - Probar `/health`.
 - Probar `/api/v1/despachos`.
 - Probar `/api/v1/ventas`.
-- Revisar logs CloudWatch si hay errores.
+- Revisar eventos Kubernetes, logs de pods y metricas CloudWatch si hay errores.
 
 ## Promover `develop` hacia `main`
 
@@ -75,7 +77,7 @@ git push origin v1.0.0
 - APIs responden correctamente a traves del frontend/Nginx.
 - Deployments Kubernetes con rollout correcto.
 - HPA creado para los workloads principales.
-- Logs disponibles en CloudWatch.
+- Evidencia de ejecucion disponible en GitHub Actions y metricas operativas visibles en CloudWatch.
 - MySQL operativo y accesible desde las APIs.
 - Infraestructura reproducible desde Terraform.
 - Workflows CI/CD documentados y configurados.

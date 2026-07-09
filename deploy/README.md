@@ -6,7 +6,7 @@ Esta carpeta contiene la configuracion necesaria para ejecutar la plataforma en 
 
 - `docker-compose.yml` para levantar frontend, APIs y base de datos.
 - Configuracion de Nginx como punto de entrada publico.
-- Guia de despliegue manual en AWS ECS.
+- Archivos de apoyo para ejecucion local y validacion de despliegue.
 - Guia de validacion del despliegue en AWS.
 
 ## Variables de entorno
@@ -94,6 +94,6 @@ MySQL usa un named volume llamado `mysql_data`. Esto permite conservar los datos
 
 ## AWS
 
-El despliegue manual hacia AWS ECS esta documentado en `deploy/aws-ecs.md`.
+El despliegue hacia AWS se realiza con Terraform, Amazon ECR, Amazon EKS y GitHub Actions. La operacion del cluster esta documentada en `docs/eks-operations.md`.
 
 La validacion posterior al despliegue esta documentada en `docs/deployment-validation.md`.
