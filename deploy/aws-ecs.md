@@ -1,6 +1,16 @@
 # AWS ECS Deployment
 
-Esta guia describe el despliegue manual de la plataforma en AWS usando ECR, ECS Fargate, EC2, Application Load Balancer, CloudWatch y Terraform.
+Esta guia queda como referencia tecnica del flujo previo basado en ECS. La arquitectura activa del proyecto usa Amazon EKS con manifiestos Kubernetes y el workflow `EKS Delivery`.
+
+Para el despliegue vigente revisar:
+
+- `docs/eks-architecture.md`
+- `docs/eks-operations.md`
+- `docs/deployment-validation.md`
+
+## Referencia historica
+
+El flujo ECS describia un despliegue manual de la plataforma en AWS usando ECR, ECS Fargate, EC2, Application Load Balancer, CloudWatch y Terraform.
 
 ## Prerrequisitos
 
@@ -74,7 +84,7 @@ docker push <api-despachos-ecr-url>:latest
 docker push <api-ventas-ecr-url>:latest
 ```
 
-Este flujo manual queda automatizado por el workflow `.github/workflows/container-images.yml` cuando se hace push a `deploy` o ejecucion manual desde GitHub Actions. En `develop`, el workflow solo valida la construccion de imagenes.
+El flujo automatizado vigente se encuentra en `.github/workflows/container-images.yml` y despliega hacia Amazon EKS.
 
 ## Actualizar ECS
 
@@ -87,7 +97,7 @@ aws ecs update-service \
   --force-new-deployment
 ```
 
-Este paso queda automatizado por el workflow `.github/workflows/ecs-deploy.yml` cuando el workflow de imagenes termina correctamente en la rama `deploy`.
+Este paso no forma parte del flujo vigente. El despliegue actual aplica manifiestos Kubernetes sobre Amazon EKS.
 
 ## Obtener URL publica
 
