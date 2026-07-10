@@ -31,9 +31,69 @@ env:
   RELEASE_ENABLED: ${{ github.ref == 'refs/heads/deploy' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' }}
 
 jobs:
+  frontend-quality:
+    name: Test frontend
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/frontend-despachos/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: apps/frontend-despachos
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: apps/frontend-despachos
+        run: npm test
+
+  backend-quality:
+    name: Test ${{ matrix.service }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api-despachos
+            path: apps/api-despachos
+          - service: api-ventas
+            path: apps/api-ventas
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Run backend tests
+        working-directory: ${{ matrix.path }}
+        run: mvn -B test
+
   build:
     name: Build ${{ matrix.service }}
     runs-on: ubuntu-latest
+    needs:
+      - frontend-quality
+      - backend-quality
 
     strategy:
       fail-fast: false
@@ -105,6 +165,24 @@ jobs:
           tags: |
             ${{ steps.ecr.outputs.registry }}/${{ steps.meta.outputs.repository }}:latest
             ${{ steps.ecr.outputs.registry }}/${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.short_sha }}
+
+      - name: Record image publication
+        if: env.RELEASE_ENABLED == 'true'
+        shell: bash
+        run: |
+          IMAGE_URI="${{ steps.ecr.outputs.registry }}/${{ steps.meta.outputs.repository }}:${{ steps.meta.outputs.short_sha }}"
+          IMAGE_DIGEST="$(aws ecr describe-images \
+            --repository-name "${{ steps.meta.outputs.repository }}" \
+            --image-ids imageTag="${{ steps.meta.outputs.short_sha }}" \
+            --query "imageDetails[0].imageDigest" \
+            --output text)"
+
+          {
+            echo "### Container image"
+            echo "- Service: \`${{ matrix.service }}\`"
+            echo "- Image: \`${IMAGE_URI}\`"
+            echo "- Digest: \`${IMAGE_DIGEST}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     name: Deploy to EKS
@@ -254,7 +332,7 @@ jobs:
       - name: Print Kubernetes status
         shell: bash
         run: |
-          kubectl get pods,svc,ingress,hpa -n innovatech -o wide
+          kubectl get pods,svc,ingress,hpa -n innovatech -o wide | tee /tmp/innovatech-kubernetes-status.txt
 
           INGRESS_HOST="$(kubectl get ingress innovatech-ingress -n innovatech \
             -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
@@ -264,3 +342,76 @@ jobs:
           else
             echo "Ingress host is not available yet. Check AWS Load Balancer Controller and ingress status."
           fi
+
+          {
+            echo "### EKS deployment"
+            echo "- Cluster: \`${RESOLVED_EKS_CLUSTER_NAME}\`"
+            echo "- Namespace: \`innovatech\`"
+            echo "- Database endpoint: resolved from deployment configuration"
+            if [ -n "$INGRESS_HOST" ]; then
+              echo "- Application URL: http://${INGRESS_HOST}"
+            else
+              echo "- Application URL: pending ingress hostname"
+            fi
+            echo ""
+            echo '```text'
+            cat /tmp/innovatech-kubernetes-status.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate application endpoints
+        shell: bash
+        run: |
+          INGRESS_HOST=""
+
+          for attempt in {1..30}; do
+            INGRESS_HOST="$(kubectl get ingress innovatech-ingress -n innovatech \
+              -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
+
+            if [ -n "$INGRESS_HOST" ]; then
+              echo "Ingress host resolved: ${INGRESS_HOST}"
+              break
+            fi
+
+            echo "Waiting for ingress hostname... attempt ${attempt}/30"
+            sleep 15
+          done
+
+          if [ -z "$INGRESS_HOST" ]; then
+            echo "Ingress hostname was not assigned in time."
+            kubectl describe ingress innovatech-ingress -n innovatech
+            exit 1
+          fi
+
+          BASE_URL="http://${INGRESS_HOST}"
+          ENDPOINTS=(
+            "/health"
+            "/api/v1/despachos"
+            "/api/v1/ventas"
+          )
+
+          echo "Application base URL: ${BASE_URL}"
+          : > /tmp/innovatech-endpoint-validation.txt
+
+          for endpoint in "${ENDPOINTS[@]}"; do
+            URL="${BASE_URL}${endpoint}"
+            echo "Validating ${URL}"
+
+            if curl --fail --silent --show-error --location --retry 12 --retry-delay 10 --max-time 20 "$URL" > /tmp/endpoint-response.txt; then
+              HTTP_STATUS="$(curl --silent --output /dev/null --write-out "%{http_code}" --max-time 20 "$URL")"
+              echo "${endpoint} -> HTTP ${HTTP_STATUS}" | tee -a /tmp/innovatech-endpoint-validation.txt
+            else
+              echo "Endpoint validation failed for ${URL}"
+              kubectl get pods,svc,ingress,hpa -n innovatech -o wide
+              exit 1
+            fi
+          done
+
+          {
+            echo "### Application validation"
+            echo "- Base URL: ${BASE_URL}"
+            echo ""
+            echo '```text'
+            cat /tmp/innovatech-endpoint-validation.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

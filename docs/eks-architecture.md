@@ -114,15 +114,17 @@ El pipeline de entrega debe consolidarse como un flujo visible para el runtime K
 
 ```text
 Checkout
+  -> Run frontend/backend tests
   -> Build Docker images
   -> Push images to Amazon ECR
   -> Configure AWS and kubeconfig
   -> Apply Kubernetes manifests
   -> Wait for rollout
-  -> Print public endpoint
+  -> Validate HTTP endpoints
+  -> Publish delivery summary
 ```
 
-El workflow debe exponer nombres de pasos claros y resumenes de despliegue para que la evidencia de build, push y deploy pueda revisarse directamente desde GitHub Actions.
+El workflow debe exponer nombres de pasos claros y resumenes de despliegue para que la evidencia de test, build, push, deploy y validacion funcional pueda revisarse directamente desde GitHub Actions.
 
 ## Observabilidad
 

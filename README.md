@@ -27,7 +27,6 @@ Frontend Nginx / React
 - GitHub Actions para CI/CD.
 - Amazon ECR para registro de imagenes.
 - Amazon EKS y Kubernetes para orquestacion de aplicaciones.
-- Amazon ECS Fargate como base previa de despliegue de contenedores.
 - Amazon EC2 para runtime MySQL.
 - Application Load Balancer para entrada HTTP publica.
 - VPC, subnets publicas/privadas, NAT Gateway, Security Groups y CloudWatch para red, seguridad y observabilidad.
@@ -42,7 +41,6 @@ innovatech-logistics-platform/
     api-ventas/
   deploy/
     docker-compose.yml
-    aws-ecs.md
   infra/
     terraform/
   k8s/
@@ -83,7 +81,7 @@ La plataforma puede ejecutarse localmente con Docker Compose desde la configurac
 
 ## Infraestructura
 
-La infraestructura AWS se define en [infra/terraform](infra/terraform). Terraform administra red publica/privada, NAT Gateway, grupos de seguridad, Application Load Balancer, repositorios ECR, EKS, ECS, EC2 para MySQL y logs en CloudWatch.
+La infraestructura AWS se define en [infra/terraform](infra/terraform). Terraform administra red publica/privada, NAT Gateway, grupos de seguridad, Application Load Balancer, repositorios ECR, EKS, EC2 para MySQL y recursos base de observabilidad.
 
 La arquitectura objetivo de Kubernetes esta documentada en [docs/eks-architecture.md](docs/eks-architecture.md). La operacion del cluster EKS esta documentada en [docs/eks-operations.md](docs/eks-operations.md).
 
@@ -91,7 +89,7 @@ La arquitectura objetivo de Kubernetes esta documentada en [docs/eks-architectur
 
 Los workflows se encuentran en [.github/workflows](.github/workflows):
 
-- `container-images.yml`: ejecuta `EKS Delivery`, construye imagenes Docker, publica en ECR, configura `kubectl`, aplica manifiestos Kubernetes y valida rollouts en EKS cuando corresponde.
+- `container-images.yml`: ejecuta `EKS Delivery` con validaciones de frontend y backend, construccion de imagenes Docker, publicacion en ECR, configuracion de `kubectl`, aplicacion de manifiestos Kubernetes, espera de rollouts en EKS y validacion HTTP de endpoints.
 
 ## Despliegue
 

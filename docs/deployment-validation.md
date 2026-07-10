@@ -94,6 +94,8 @@ Si el hostname aparece vacio, revisar que AWS Load Balancer Controller este inst
 
 ## Probar endpoints
 
+El workflow `EKS Delivery` ejecuta esta validacion automaticamente despues del rollout. Tambien se puede ejecutar manualmente:
+
 ```bash
 curl "http://$APPLICATION_HOST/health"
 curl "http://$APPLICATION_HOST/api/v1/despachos"
@@ -125,6 +127,15 @@ API ventas:
 ```bash
 kubectl logs -n "$NAMESPACE" deployment/api-ventas
 ```
+
+## Evidencia del pipeline
+
+En GitHub Actions, revisar la ejecucion `EKS Delivery`:
+
+- Jobs `Test frontend`, `Test api-despachos` y `Test api-ventas`.
+- Jobs `Build frontend-despachos`, `Build api-despachos` y `Build api-ventas`.
+- Job `Deploy to EKS`.
+- Resumen del workflow con tags, digest de imagen, estado de Kubernetes y validacion HTTP de endpoints.
 
 ## Eventos del namespace
 
